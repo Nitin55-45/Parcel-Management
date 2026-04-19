@@ -289,7 +289,7 @@ def admin_dashboard():
     if not login_required("admin"):
         return redirect(url_for("login"))
 
-    selected_hub  = request.args.get("hub", "").strip()
+    selected_hub  = request.args.get("hub", "").strip().title()
     search_query  = request.args.get("search", "").strip()
     all_parcels   = load_parcels()
 
@@ -482,7 +482,7 @@ def delivery_dashboard():
         return redirect(url_for("login"))
 
     driver_id = session.get("staff_id", "DRV01")
-    selected_hub = request.args.get("hub")
+    selected_hub = request.args.get("hub", "").strip().title()
 
     hub_result = subprocess.run(["./get_hubs_main.exe"], capture_output=True, text=True)
     hubs = [h.strip() for h in hub_result.stdout.strip().splitlines() if h.strip()]
