@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Parcel Log - Parcel Dispatch System</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+
+    header { background: #1a1a2e; color: white; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 1.3rem; letter-spacing: 1px; }
+    header .user-info { font-size: 0.9rem; display: flex; align-items: center; gap: 16px; }
+    .role-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: white; background: #e94560; }
+    .logout-btn { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; text-decoration: none; }
+    .logout-btn:hover { background: rgba(255,255,255,0.1); }
+
+    .hero { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 32px; }
+    .hero h2 { font-size: 1.6rem; margin-bottom: 6px; }
+    .hero p { color: rgba(255,255,255,0.65); font-size: 0.92rem; }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 28px 20px; }
+    .back-link { display: inline-block; margin-bottom: 18px; color: #555; text-decoration: none; font-size: 0.88rem; }
+    .back-link:hover { text-decoration: underline; }
+
+    .section { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
+    .section-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; font-weight: 700; font-size: 0.95rem; color: #1a1a2e; display: flex; justify-content: space-between; align-items: center; }
+    .section-header .count { background: #f0f2f5; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; color: #666; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 14px; text-align: left; font-size: 0.85rem; border-bottom: 1px solid #f0f0f0; }
+    th { background: #f8f8f8; font-weight: 600; color: #555; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.4px; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+
+    .sender-receiver { line-height: 1.6; }
+    .sender-receiver .name { font-weight: 600; color: #1a1a2e; }
+    .sender-receiver .sub { font-size: 0.8rem; color: #888; }
+
+    .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+    .status-Booked { background: #ebf5fb; color: #2980b9; }
+    .status-InTransit { background: #fef9e7; color: #d68910; }
+    .status-Reached { background: #f5eef8; color: #8e44ad; }
+    .status-Delivered { background: #eafaf1; color: #1e8449; }
+
+    .empty { text-align: center; padding: 40px; color: #aaa; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📦 Parcel Dispatch System</h1>
+  <div class="user-info">
+    <span>👤 Admin</span>
+    <span class="role-badge">admin</span>
+    <a href="/logout" class="logout-btn">Logout</a>
+  </div>
+</header>
+
+<div class="hero">
+  <h2>Parcel Log</h2>
+  <p>All registered parcels with sender, receiver, date, time and current status.</p>
+</div>
+
+<div class="main">
+  <a href="/" class="back-link">← Back to Home</a>
+
+  <div class="section">
+    <div class="section-header">
+      All Parcels
+      <span class="count">{{ parcels | length }} total</span>
+    </div>
+
+    {% if parcels %}
+    <table>
+      <tr>
+        <th>Tracking No</th>
+        <th>Sender</th>
+        <th>Receiver</th>
+        <th>Weight</th>
+        <th>Type</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+      </tr>
+      {% for p in parcels %}
+      <tr>
+        <td><strong>{{ p.tracking_number }}</strong></td>
+        <td class="sender-receiver">
+          <div class="name">{{ p.sender_name }}</div>
+          <div class="sub">{{ p.sender_contact }}</div>
+          <div class="sub">{{ p.sender_city }}</div>
+        </td>
+        <td class="sender-receiver">
+          <div class="name">{{ p.receiver_name }}</div>
+          <div class="sub">{{ p.receiver_contact }}</div>
+          <div class="sub">{{ p.receiver_city }}</div>
+        </td>
+        <td>{{ p.weight_kg or p.weight }} kg</td>
+        <td>{{ p.parcel_type }}</td>
+        <td>{{ p.status_date }}</td>
+        <td>{{ p.status_time }}</td>
+        <td><span class="status-badge status-{{ p.latest_status }}">{{ p.latest_status }}</span></td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <div class="empty">No parcels registered yet.</div>
+    {% endif %}
+  </div>
+</div>
+
+</body>
+</html>

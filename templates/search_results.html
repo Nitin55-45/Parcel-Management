@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Search Results</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+    header { background: #1a1a2e; color: white; padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 1.1rem; }
+    header a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.88rem; }
+    header a:hover { color: white; }
+    .main { max-width: 860px; margin: 32px auto; padding: 0 20px; }
+    .results-header { margin-bottom: 24px; }
+    .results-header h2 { font-size: 1.3rem; margin-bottom: 6px; }
+    .results-header p { color: #888; font-size: 0.88rem; }
+    .results-header .query { color: #1a1a2e; font-weight: 600; }
+    .result-card { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); margin-bottom: 18px; overflow: hidden; }
+    .result-card-header { background: #1a1a2e; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .result-card-header .trk { font-weight: 700; font-size: 1rem; letter-spacing: 0.5px; }
+    .status-badge { padding: 3px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
+    .status-Booked { background: #ebf5fb; color: #2980b9; }
+    .status-InTransit { background: #fef9e7; color: #d68910; }
+    .status-Out-for-Delivery { background: #f5eef8; color: #8e44ad; }
+    .status-Delivered { background: #eafaf1; color: #1e8449; }
+    .result-card-body { padding: 18px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width: 600px) { .result-card-body { grid-template-columns: 1fr; } }
+    .info-block h4 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.8px; color: #aaa; margin-bottom: 8px; }
+    .info-row { font-size: 0.88rem; color: #444; margin-bottom: 4px; }
+    .info-row strong { color: #1a1a2e; }
+    .result-card-footer { padding: 10px 20px; background: #fafafa; border-top: 1px solid #f0f0f0; display: flex; gap: 20px; font-size: 0.82rem; color: #888; flex-wrap: wrap; }
+    .no-results { text-align: center; background: white; border-radius: 12px; padding: 60px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+    .no-results .icon { font-size: 3rem; margin-bottom: 12px; }
+    .no-results h3 { color: #1a1a2e; margin-bottom: 8px; }
+    .no-results p { color: #aaa; font-size: 0.9rem; }
+    .actions { display: flex; gap: 12px; margin-top: 24px; }
+    .btn { padding: 9px 20px; border-radius: 8px; border: none; font-size: 0.88rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.85; }
+    .btn-dark { background: #1a1a2e; color: white; }
+    .btn-outline { background: white; color: #1a1a2e; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>🔍 Search Results</h1>
+  <div style="display:flex;gap:20px;">
+    <a href="/">🏠 Home</a>
+    <a href="/logout">Logout</a>
+  </div>
+</header>
+<div class="main">
+  <div class="results-header">
+    <h2>Search Results</h2>
+    <p>{{ search_type }}: <span class="query">{{ search_query }}</span>
+      — {% if results %}<strong>{{ results | length }}</strong> result(s) found{% else %}No results found{% endif %}
+    </p>
+  </div>
+  {% if results %}
+    {% for r in results %}
+    {% set status_val = r.latest_status or r.get('status', 'Booked') %}
+    {% set status_class = status_val | replace(' ', '-') %}
+    <div class="result-card">
+      <div class="result-card-header">
+        <span class="trk">📦 {{ r.tracking }}</span>
+        <span class="status-badge status-{{ status_class }}">{{ status_val }}</span>
+      </div>
+      <div class="result-card-body">
+        <div class="info-block">
+          <h4>Sender</h4>
+          <div class="info-row">👤 <strong>{{ r.sender_name }}</strong></div>
+          <div class="info-row">📞 <strong>{{ r.sender_contact }}</strong></div>
+          <div class="info-row">📍 {{ r.sender_address }}, <strong>{{ r.sender_city }}</strong></div>
+        </div>
+        <div class="info-block">
+          <h4>Receiver</h4>
+          <div class="info-row">👤 <strong>{{ r.receiver_name }}</strong></div>
+          <div class="info-row">📞 <strong>{{ r.receiver_contact }}</strong></div>
+          <div class="info-row">📍 {{ r.receiver_address }}, <strong>{{ r.receiver_city }}</strong></div>
+        </div>
+        <div class="info-block">
+          <h4>Parcel Info</h4>
+          <div class="info-row">⚖️ Weight: <strong>{{ r.weight }} kg</strong></div>
+          <div class="info-row">📦 Type: <strong>{{ r.parcel_type }}</strong></div>
+          {% if r.instructions %}<div class="info-row">📝 Note: <strong>{{ r.instructions }}</strong></div>{% endif %}
+        </div>
+        <div class="info-block">
+          <h4>Route</h4>
+          <div class="info-row">🏙️ From: <strong>{{ r.sender_city }}</strong></div>
+          <div class="info-row">🏙️ To: <strong>{{ r.receiver_city }}</strong></div>
+        </div>
+      </div>
+      <div class="result-card-footer">
+        <span>📅 Booked: <strong>{{ r.date or 'N/A' }}</strong></span>
+        <span>🕐 Time: <strong>{{ r.time or 'N/A' }}</strong></span>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="no-results">
+    <div class="icon">🔍</div>
+    <h3>No Parcels Found</h3>
+    <p>No parcels matched "<strong>{{ search_query }}</strong>". Try a different search.</p>
+  </div>
+  {% endif %}
+  <div class="actions">
+    <a href="/search" class="btn btn-dark">← New Search</a>
+    <a href="/" class="btn btn-outline">🏠 Home</a>
+  </div>
+</div>
+</body>
+</html>

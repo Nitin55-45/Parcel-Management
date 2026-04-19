@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Segoe UI", sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+
+    header { background: #1a1a2e; color: white; padding: 14px 28px;
+             display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 1.1rem; }
+    header a  { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.88rem; }
+    header a:hover { color: white; }
+
+    .override-bar {
+      background: white; border-bottom: 1px solid #e0e0e0;
+      padding: 12px 28px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    }
+    .override-bar label { font-weight: 600; font-size: 0.88rem; }
+    .override-bar input, .override-bar select {
+      padding: 7px 10px; border: 1px solid #ddd; border-radius: 7px;
+      font-size: 0.88rem; min-width: 150px;
+    }
+
+    .top-bar {
+      background: white; padding: 16px 28px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+    }
+    .top-bar select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+
+    .btn { padding: 8px 18px; border: none; border-radius: 8px; cursor: pointer;
+           font-size: 0.88rem; font-weight: 600; transition: all 0.2s; }
+    .btn:hover { opacity: 0.85; }
+    .btn-dark { background: #1a1a2e; color: white; }
+    .btn-sm   { padding: 6px 14px; font-size: 0.82rem; }
+
+    .main { padding: 24px 20px; }
+    .kanban { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    @media(max-width:900px) { .kanban { grid-template-columns: 1fr; } }
+
+    .queue-col { background: white; border-radius: 12px;
+                 box-shadow: 0 2px 10px rgba(0,0,0,0.07); overflow: hidden;
+                 display: flex; flex-direction: column; }
+
+    .queue-header { padding: 14px 18px; font-weight: 700; font-size: 0.95rem;
+                    display: flex; justify-content: space-between; align-items: center; color: white; }
+    .queue-header .count { background: rgba(255,255,255,0.3); padding: 2px 8px;
+                           border-radius: 12px; font-size: 0.8rem; }
+
+    .col-booked   .queue-header { background: #2980b9; }
+    .col-transit  .queue-header { background: #f39c12; }
+    .col-outdeliv .queue-header { background: #8e44ad; }
+
+    .process-row {
+      padding: 10px 14px; border-bottom: 1px solid #f0f0f0;
+      display: flex; gap: 8px; align-items: center;
+    }
+    .process-btn {
+      flex: 1; padding: 8px 12px; border: none; border-radius: 8px;
+      font-size: 0.85rem; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .process-btn:hover  { opacity: 0.85; transform: translateY(-1px); }
+    .process-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .process-btn.mode-next     { background: #eaf4fb; color: #2980b9; border: 1.5px solid #2980b9; }
+    .col-transit  .process-btn.mode-next  { background: #fef9e7; color: #f39c12; border-color: #f39c12; }
+    .col-outdeliv .process-btn.mode-next  { background: #f5eef8; color: #8e44ad; border-color: #8e44ad; }
+
+    .process-btn.mode-selected { background: #2980b9; color: white; border: 1.5px solid #2980b9; }
+    .col-transit  .process-btn.mode-selected { background: #f39c12; border-color: #f39c12; }
+    .col-outdeliv .process-btn.mode-selected { background: #8e44ad; border-color: #8e44ad; }
+
+    .select-all-btn {
+      padding: 7px 10px; background: #f8f9fa; border: 1px solid #ddd;
+      border-radius: 7px; font-size: 0.78rem; cursor: pointer; color: #555;
+      white-space: nowrap;
+    }
+    .select-all-btn:hover { background: #e9ecef; }
+
+    .queue-body { padding: 14px; flex: 1; overflow-y: auto; max-height: 420px; }
+
+    .parcel-card {
+      border: 1px solid #eee; border-radius: 8px; padding: 12px 14px;
+      margin-bottom: 9px; display: flex; gap: 10px; align-items: flex-start;
+      transition: background 0.15s; position: relative;
+    }
+    .parcel-card:first-child { border-left: 4px solid #27ae60; }
+    .parcel-card.selected    { background: #f0f8ff; border-color: #aad4f5; }
+    .parcel-card input[type="checkbox"] { margin-top: 2px; flex-shrink: 0; transform: scale(1.2); }
+    .parcel-info { flex: 1; }
+    .parcel-trk  { font-weight: 700; color: #1a1a2e; margin-bottom: 5px; font-size: 0.9rem; }
+    .card-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; }
+    .card-row    { font-size: 0.82rem; color: #555; }
+    .card-row strong { color: #1a1a2e; }
+    .first-badge {
+      position: absolute; top: 8px; right: 8px;
+      background: #27ae60; color: white; font-size: 0.68rem;
+      padding: 2px 7px; border-radius: 10px; font-weight: 700;
+    }
+    .empty-queue { text-align: center; padding: 36px 16px; color: #bbb; font-size: 0.88rem; }
+    .no-hub      { text-align: center; padding: 60px 20px; color: #aaa; }
+    .no-hub .icon { font-size: 3rem; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>&#127970; Admin Dashboard</h1>
+  <div style="display:flex;gap:20px;">
+    <a href="/">&#127968; Home</a>
+    <a href="/logout">Logout</a>
+  </div>
+</header>
+
+{% if selected_hub %}
+<form method="POST" action="/admin_override" class="override-bar">
+  <input type="hidden" name="current_hub" value="{{ selected_hub }}"/>
+  <label>&#128295; Override:</label>
+  <input type="text" name="tracking_number" placeholder="Tracking number" value="{{ override_trk }}" required/>
+  <select name="status">
+    <option value="Booked">Booked</option>
+    <option value="InTransit">InTransit</option>
+    <option value="Out for Delivery">Out for Delivery</option>
+    <option value="Delivered">Delivered</option>
+  </select>
+  <button type="submit" class="btn btn-dark btn-sm">Apply Override</button>
+  {% if override_msg %}
+  <span style="font-size:0.85rem;font-weight:600;color:{{ '#155724' if '&#10003;' in override_msg else '#721c24' }}">
+    {{ override_msg }}
+  </span>
+  {% endif %}
+</form>
+{% endif %}
+
+<div class="top-bar">
+  <form method="GET" action="/admin_dashboard" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <label style="font-weight:600;font-size:0.9rem;">Hub:</label>
+    <select name="hub" onchange="this.form.submit()">
+    <option value="">-- Select Hub --</option>
+    {% for hub in hubs %}
+    <option value="{{ hub }}" {% if selected_hub == hub %}selected{% endif %}>{{ hub }}</option>
+    {% endfor %}
+</select>
+  </form>
+</div>
+
+<div class="main">
+{% if selected_hub %}
+<div class="kanban">
+
+  <!-- BOOKED -->
+  <form method="POST" action="/process_batch" id="form-booked" class="queue-col col-booked">
+    <input type="hidden" name="current_hub" value="{{ selected_hub }}"/>
+    <input type="hidden" name="target_status" value="InTransit"/>
+    <div class="queue-header">
+      &#128230; Booked
+      <span class="count">{{ booked | length }}</span>
+    </div>
+    <div class="process-row">
+      <button type="submit" id="btn-booked" class="process-btn mode-next" {% if not booked %}disabled{% endif %}>
+        &#9654; Process Next
+      </button>
+      <button type="button" class="select-all-btn" onclick="toggleSelectAll('form-booked')">&#9745; All</button>
+    </div>
+    <div class="queue-body">
+      {% if booked %}
+        {% for p in booked %}
+        <div class="parcel-card">
+          {% if loop.first %}<span class="first-badge">NEXT</span>{% endif %}
+          <input type="checkbox" name="tracking_numbers" value="{{ p.tracking_number }}"
+                 onchange="onCheckChange('form-booked','btn-booked',this.closest('.parcel-card'))"/>
+          <div class="parcel-info">
+            <div class="parcel-trk">{{ p.tracking_number }}</div>
+            <div class="card-grid">
+              <div class="card-row">&#128100; <strong>{{ p.sender_name }}</strong></div>
+              <div class="card-row">&#127759; <strong>{{ p.sender_city }}</strong></div>
+              <div class="card-row">&#8594; <strong>{{ p.receiver_city }}</strong></div>
+              <div class="card-row">&#9878; <strong>{{ p.weight_kg or p.weight }} kg</strong></div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-queue">&#10003; Queue empty</div>
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- IN TRANSIT -->
+  <form method="POST" action="/process_batch" id="form-transit" class="queue-col col-transit">
+    <input type="hidden" name="current_hub" value="{{ selected_hub }}"/>
+    <input type="hidden" name="target_status" value="Out for Delivery"/>
+    <div class="queue-header">
+      &#128666; In Transit
+      <span class="count">{{ intransit | length }}</span>
+    </div>
+    <div class="process-row">
+      <button type="submit" id="btn-transit" class="process-btn mode-next" {% if not intransit %}disabled{% endif %}>
+        &#9654; Process Next
+      </button>
+      <button type="button" class="select-all-btn" onclick="toggleSelectAll('form-transit')">&#9745; All</button>
+    </div>
+    <div class="queue-body">
+      {% if intransit %}
+        {% for p in intransit %}
+        <div class="parcel-card">
+          {% if loop.first %}<span class="first-badge">NEXT</span>{% endif %}
+          <input type="checkbox" name="tracking_numbers" value="{{ p.tracking_number }}"
+                 onchange="onCheckChange('form-transit','btn-transit',this.closest('.parcel-card'))"/>
+          <div class="parcel-info">
+            <div class="parcel-trk">{{ p.tracking_number }}</div>
+            <div class="card-grid">
+              <div class="card-row">&#128100; <strong>{{ p.sender_name }}</strong></div>
+              <div class="card-row">&#127759; <strong>{{ p.sender_city }}</strong></div>
+              <div class="card-row">&#8594; <strong>{{ p.receiver_city }}</strong></div>
+              <div class="card-row">&#9878; <strong>{{ p.weight_kg or p.weight }} kg</strong></div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-queue">&#10003; Queue empty</div>
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- OUT FOR DELIVERY -->
+  <form method="POST" action="/process_batch" id="form-outdeliv" class="queue-col col-outdeliv">
+    <input type="hidden" name="current_hub" value="{{ selected_hub }}"/>
+    <input type="hidden" name="target_status" value="Delivered"/>
+    <div class="queue-header">
+      &#128667; Out for Delivery
+      <span class="count">{{ out_for_delivery | length }}</span>
+    </div>
+    <div class="process-row">
+      <button type="submit" id="btn-outdeliv" class="process-btn mode-next" {% if not out_for_delivery %}disabled{% endif %}>
+        &#9654; Process Next
+      </button>
+      <button type="button" class="select-all-btn" onclick="toggleSelectAll('form-outdeliv')">&#9745; All</button>
+    </div>
+    <div class="queue-body">
+      {% if out_for_delivery %}
+        {% for p in out_for_delivery %}
+        <div class="parcel-card">
+          {% if loop.first %}<span class="first-badge">NEXT</span>{% endif %}
+          <input type="checkbox" name="tracking_numbers" value="{{ p.tracking_number }}"
+                 onchange="onCheckChange('form-outdeliv','btn-outdeliv',this.closest('.parcel-card'))"/>
+          <div class="parcel-info">
+            <div class="parcel-trk">{{ p.tracking_number }}</div>
+            <div class="card-grid">
+              <div class="card-row">&#128100; <strong>{{ p.receiver_name }}</strong></div>
+              <div class="card-row">&#127759; <strong>{{ p.receiver_city }}</strong></div>
+              <div class="card-row">&#128222; <strong>{{ p.receiver_contact }}</strong></div>
+              <div class="card-row">&#9878; <strong>{{ p.weight_kg or p.weight }} kg</strong></div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-queue">&#10003; Queue empty</div>
+      {% endif %}
+    </div>
+  </form>
+
+</div>
+{% else %}
+<div class="no-hub">
+  <div class="icon">&#127759;</div>
+  <p>Select a hub city above to load the queue.</p>
+</div>
+{% endif %}
+</div>
+
+<script>
+const LABELS = {
+  "btn-booked":   { next: "&#9654; Process Next", selected: "&#9654; Send to InTransit" },
+  "btn-transit":  { next: "&#9654; Process Next", selected: "&#9654; Send to Out for Delivery" },
+  "btn-outdeliv": { next: "&#9654; Process Next", selected: "&#9654; Send to Delivered" }
+};
+
+function updateBtn(formId, btnId) {
+  const form = document.getElementById(formId);
+  const btn  = document.getElementById(btnId);
+  const any  = Array.from(form.querySelectorAll("input[name='tracking_numbers']")).some(cb => cb.checked);
+  if (any) {
+    btn.classList.replace("mode-next", "mode-selected");
+    btn.innerHTML = LABELS[btnId].selected;
+  } else {
+    btn.classList.replace("mode-selected", "mode-next");
+    btn.innerHTML = LABELS[btnId].next;
+  }
+}
+
+function onCheckChange(formId, btnId, card) {
+  card.classList.toggle("selected", card.querySelector("input[name='tracking_numbers']").checked);
+  updateBtn(formId, btnId);
+}
+
+function toggleSelectAll(formId) {
+  const form = document.getElementById(formId);
+  const cbs  = form.querySelectorAll("input[name='tracking_numbers']");
+  const all  = Array.from(cbs).every(cb => cb.checked);
+  cbs.forEach(cb => { cb.checked = !all; cb.closest(".parcel-card").classList.toggle("selected", !all); });
+  updateBtn(formId, form.querySelector(".process-btn").id);
+}
+
+document.querySelectorAll("form[id^='form-']").forEach(form => {
+  form.addEventListener("submit", function(e) {
+    const cbs = form.querySelectorAll("input[name='tracking_numbers']");
+    const any = Array.from(cbs).some(cb => cb.checked);
+    form.querySelectorAll(".auto-inject").forEach(el => el.remove());
+    if (!any) {
+      const first = cbs[0];
+      if (!first) { e.preventDefault(); return; }
+      const h = document.createElement("input");
+      h.type = "hidden"; h.name = "tracking_numbers";
+      h.value = first.value; h.className = "auto-inject";
+      form.appendChild(h);
+    }
+  });
+});
+</script>
+</body>
+</html>

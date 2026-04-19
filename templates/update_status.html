@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Status</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container mt-5" style="max-width:600px">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <h4 class="mb-1">Update Parcel Status</h4>
+            <p class="text-muted mb-4">Staff: {{ staff_name }} ({{ staff_id }})</p>
+
+            {% if success %}
+            <div class="alert alert-success">
+                <strong>✅ Status Updated Successfully</strong><br>
+                {% for line in msg_lines %}<span>{{ line }}</span><br>{% endfor %}
+                <hr>
+                <strong>Notified:</strong><br>
+                Sender: {{ sender_name }} ({{ sender_phone }})<br>
+                Receiver: {{ receiver_name }} ({{ receiver_phone }})
+            </div>
+            {% elif success == false %}
+            <div class="alert alert-danger">
+                {% for line in msg_lines %}<span>{{ line }}</span><br>{% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="POST" action="/update_status">
+                <div class="mb-3">
+                    <label class="form-label">Tracking Number</label>
+                    <input type="text" name="tracking_number" class="form-control"
+                           value="{{ tracking or '' }}" placeholder="e.g. TRK-20260407-0001-AB12" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">New Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="">-- Select Status --</option>
+                        <option value="Booked">Booked</option>
+                        <option value="InTransit">InTransit</option>
+                        <option value="Reached">Reached</option>
+                        <option value="Delivered">Delivered</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Current Location</label>
+                    <input type="text" name="location" class="form-control"
+                           placeholder="e.g. Chennai Hub" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Update Status</button>
+            </form>
+            <a href="/" class="btn btn-outline-secondary w-100 mt-2">Back to Home</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

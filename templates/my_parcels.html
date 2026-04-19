@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Parcels</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+    header { background: #1a1a2e; color: white; padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 1.1rem; }
+    header a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.88rem; }
+    header a:hover { color: white; }
+    .main { max-width: 960px; margin: 32px auto; padding: 0 20px; }
+    .tabs { display: flex; gap: 0; border-radius: 10px; overflow: hidden; border: 1px solid #ddd; margin-bottom: 28px; }
+    .tab-btn { flex: 1; padding: 12px; background: white; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #888; transition: all 0.2s; border-right: 1px solid #ddd; }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn.active { background: #1a1a2e; color: white; }
+    .tab-btn:hover:not(.active) { background: #f5f5f5; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .table-wrap { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    thead tr { background: #1a1a2e; color: white; }
+    thead th { padding: 12px 16px; text-align: left; font-weight: 600; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    tbody tr { border-bottom: 1px solid #f0f0f0; transition: background 0.15s; }
+    tbody tr:hover { background: #fafafa; }
+    tbody td { padding: 12px 16px; color: #444; }
+    tbody td strong { color: #1a1a2e; }
+    .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+    .status-Booked { background: #ebf5fb; color: #2980b9; }
+    .status-InTransit { background: #fef9e7; color: #d68910; }
+    .status-Out-for-Delivery { background: #f5eef8; color: #8e44ad; }
+    .status-Delivered { background: #eafaf1; color: #1e8449; }
+    .empty-state { text-align: center; padding: 50px 20px; color: #aaa; background: white; border-radius: 12px; }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>📬 My Parcels — {{ user_name }}</h1>
+  <div style="display:flex;gap:20px;">
+    <a href="/">🏠 Home</a>
+    <a href="/logout">Logout</a>
+  </div>
+</header>
+<div class="main">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('sent', this)">📤 Sent ({{ sent | length }})</button>
+    <button class="tab-btn" onclick="showTab('received', this)">📥 Received ({{ received | length }})</button>
+  </div>
+  <div id="tab-sent" class="tab-panel active">
+    {% if sent %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tracking No</th><th>Receiver</th><th>To City</th><th>Weight</th><th>Status</th><th>Last Updated</th></tr></thead>
+        <tbody>
+          {% for p in sent %}
+          {% set sc = (p.latest_status or 'Booked') | replace(' ', '-') %}
+          <tr>
+            <td><strong>{{ p.tracking_number }}</strong></td>
+            <td>{{ p.receiver_name }}</td>
+            <td>{{ p.receiver_city }}</td>
+            <td>{{ p.weight_kg or p.weight }} kg</td>
+            <td><span class="status-badge status-{{ sc }}">{{ p.latest_status or 'Booked' }}</span></td>
+            <td>{{ p.status_datetime or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><div class="icon">📤</div><p>You haven't sent any parcels yet.</p></div>
+    {% endif %}
+  </div>
+  <div id="tab-received" class="tab-panel">
+    {% if received %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tracking No</th><th>Sender</th><th>From City</th><th>Weight</th><th>Status</th><th>Last Updated</th></tr></thead>
+        <tbody>
+          {% for p in received %}
+          {% set sc = (p.latest_status or 'Booked') | replace(' ', '-') %}
+          <tr>
+            <td><strong>{{ p.tracking_number }}</strong></td>
+            <td>{{ p.sender_name }}</td>
+            <td>{{ p.sender_city }}</td>
+            <td>{{ p.weight_kg or p.weight }} kg</td>
+            <td><span class="status-badge status-{{ sc }}">{{ p.latest_status or 'Booked' }}</span></td>
+            <td>{{ p.status_datetime or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><div class="icon">📥</div><p>You haven't received any parcels yet.</p></div>
+    {% endif %}
+  </div>
+</div>
+<script>
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
