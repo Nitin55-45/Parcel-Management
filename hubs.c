@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 /* hubs.c — Priority Queue (Linked List) for parcel tracking */
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,7 +47,8 @@ void enqueue_front(Queue *q, const char *trk) {
 char* dequeue(Queue *q) {
     if (!q->front) return NULL;
     QueueNode *tmp = q->front;
-    char *trk = strdup(tmp->tracking_number);
+    char *trk = malloc(50);
+    if (trk) strcpy(trk, tmp->tracking_number);
     q->front = q->front->next;
     if (!q->front) q->rear = NULL;
     free(tmp); q->count--;

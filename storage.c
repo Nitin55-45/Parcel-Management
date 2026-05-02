@@ -1,5 +1,7 @@
+#define _CRT_SECURE_NO_WARNINGS
 /* storage.c — CSV read/write for parcels */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <ctype.h>

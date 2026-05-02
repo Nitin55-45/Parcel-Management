@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 /* parcel_system.c — Command router with Priority Queue support. */
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,7 +1,9 @@
+#define _CRT_SECURE_NO_WARNINGS
 /* search.c — BST for parcel lookup + status lookup + date search */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "search.h"
 
 #ifdef _WIN32

@@ -1,6 +1,8 @@
+#define _CRT_SECURE_NO_WARNINGS
 /* status_update.c — Validate and save status to status_log.csv */
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "status_update.h"
 #include "storage.h"
 #define STATUS_LOG_FILE "status_log.csv"

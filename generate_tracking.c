@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 /* generate_tracking.c — Generate unique tracking number: TRK-YYYYMMDD-NNNN-XXXX */
 #include <stdio.h>
 #include <stdlib.h>

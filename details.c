@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 /* details.c — Collect and validate sender/receiver input */
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 /* hub_search.c — City BST with linked list of parcels per city */
 #include <stdio.h>
 #include <stdlib.h>
