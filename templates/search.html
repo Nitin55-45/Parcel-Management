@@ -7,10 +7,18 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
-    header { background: #1a1a2e; color: white; padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; }
-    header h1 { font-size: 1.1rem; }
-    header a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.88rem; }
-    header a:hover { color: white; }
+    header { background: #1a1a2e; color: white; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 1.3rem; letter-spacing: 1px; }
+    .top-bar { background: white; padding: 18px 32px; border-bottom: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; background: white; color: #1a1a2e;
+      text-decoration: none; border-radius: 8px; font-weight: 700;
+      font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      transition: all 0.2s; border: 1px solid #eee;
+    }
+    .back-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-color: #ddd; }
+
     .main { max-width: 680px; margin: 40px auto; padding: 0 20px; }
     .page-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; }
     .page-sub { color: #888; font-size: 0.9rem; margin-bottom: 28px; }
@@ -34,25 +42,35 @@
 </head>
 <body>
 <header>
-  <h1>🔍 Search Parcel</h1>
-  <div style="display:flex;gap:20px;">
-    <a href="/">🏠 Home</a>
-    <a href="/logout">Logout</a>
+  <h1>Parcel Dispatch System</h1>
+  <div style="display:flex; gap:20px; align-items:center;">
+    <span style="font-size:0.9rem; color:rgba(255,255,255,0.8);">👤 {{ session.get('name', 'User') }}</span>
+    <span style="background:{% if role == 'admin' %}#e94560{% elif role == 'delivery' %}#f5a623{% else %}#2980b9{% endif %}; padding:2px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; text-transform:uppercase;">{{ role }}</span>
+    <a href="/logout" style="background:rgba(255,255,255,0.1); padding:6px 15px; border-radius:6px; border:1px solid rgba(255,255,255,0.3); color:white; text-decoration:none; font-size:0.85rem;">Logout</a>
   </div>
 </header>
+<div class="top-bar">
+  <div class="main" style="max-width:1100px; padding:0; margin:0 auto; display:grid; grid-template-columns: 1fr auto 1fr; align-items:center; width:100%;">
+    <div style="text-align:left;">
+      <a href="/" class="back-btn">← Back to Home</a>
+    </div>
+    <h2 style="font-size:1.3rem; color:#1a1a2e; margin:0; font-weight:800; white-space:nowrap;">Parcel Search</h2>
+    <div style="text-align:right;"></div>
+  </div>
+</div>
+
 <div class="main">
-  <div class="page-title">Search Parcel</div>
   <div class="page-sub">Find parcels by tracking number{% if role == 'admin' %}, hub city, or date range{% endif %}.</div>
   <div class="tabs">
-    <button class="tab-btn active" onclick="showTab('tracking', this)">🔍 By Tracking No</button>
+    <button class="tab-btn active" onclick="showTab('tracking', this)">By Tracking No</button>
     {% if role == 'admin' %}
-    <button class="tab-btn" onclick="showTab('hub', this)">🏙️ By Hub</button>
-    <button class="tab-btn" onclick="showTab('date', this)">📅 By Date</button>
+    <button class="tab-btn" onclick="showTab('hub', this)">By Hub</button>
+    <button class="tab-btn" onclick="showTab('date', this)">By Date</button>
     {% endif %}
   </div>
   <div id="tab-tracking" class="tab-panel active">
     <div class="card">
-      <h3>🔍 Search by Tracking Number</h3>
+      <h3>Search by Tracking Number</h3>
       <form method="POST" action="/search_by_tracking">
         <div class="form-group">
           <label>Tracking Number</label>
@@ -66,11 +84,16 @@
   {% if role == 'admin' %}
   <div id="tab-hub" class="tab-panel">
     <div class="card">
-      <h3>🏙️ Search by Hub City</h3>
+      <h3>Search by Hub City</h3>
       <form method="POST" action="/search_by_hub">
         <div class="form-group">
           <label>Hub / City Name</label>
-          <input type="text" name="hub" placeholder="e.g. Chennai" required/>
+          <select name="hub" required>
+            <option value="">-- Select Hub --</option>
+            {% for h in hubs %}
+            <option value="{{ h }}">{{ h }}</option>
+            {% endfor %}
+          </select>
         </div>
         <button type="submit" class="btn">Search</button>
       </form>
@@ -79,7 +102,7 @@
   </div>
   <div id="tab-date" class="tab-panel">
     <div class="card">
-      <h3>📅 Search by Date Range</h3>
+      <h3>Search by Date Range</h3>
       <form method="POST" action="/search_by_date">
         <div class="form-group">
           <label>From Date</label>

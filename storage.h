@@ -1,12 +1,9 @@
 #ifndef STORAGE_H
 #define STORAGE_H
-
 #include <stdio.h>
 
-// Define Parcel structure
 typedef struct {
     char tracking_number[50];
-
     char sender_name[100];
     char sender_contact[20];
     char sender_address[200];
@@ -17,12 +14,15 @@ typedef struct {
     char receiver_city[50];
     float weight;
     char parcel_type[50];
-    char special_instructions[200]; // can be entered by user
+    char special_instructions[200];
+    int priority;  /* 0 = Normal, 1 = Priority */
+    char date[20];
+    char time_str[20];
 } Parcel;
 
-// Function declarations
 void save_to_csv(Parcel *p);
 void get_current_datetime(char *date, char *time_str);
-void write_csv_row(FILE *f, const Parcel *p, const char *date, const char *time_str);
+int  parse_csv_field(const char *line, int pos, char *out, int out_sz);
+int  file_exists(const char *filename);
 
-#endif // STORAGE_H
+#endif

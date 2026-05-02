@@ -1,10 +1,9 @@
 #ifndef HUBS_H
 #define HUBS_H
 
-#define TABLE_SIZE 50
-
 typedef struct QueueNode {
     char tracking_number[50];
+    int priority;  /* 0 = Normal, 1 = Priority */
     struct QueueNode *next;
 } QueueNode;
 
@@ -14,18 +13,9 @@ typedef struct {
     int count;
 } Queue;
 
-typedef struct Hub {
-    char city_name[50];
-    Queue *booked_queue;
-    Queue *intransit_queue;
-    Queue *out_delivery_queue;
-    struct Hub *next;
-} Hub;
-
-void init_hash_table();
-Hub* get_or_create_hub(const char *city_name);
-void enqueue(Queue *q, const char *tracking_number);
+void  init_queue(Queue *q);
+void  enqueue(Queue *q, const char *tracking_number, int priority);
+void  enqueue_front(Queue *q, const char *tracking_number);
 char* dequeue(Queue *q);
-int remove_from_middle(Queue *q, const char *tracking_number);
 
-#endif // HUBS_H
+#endif

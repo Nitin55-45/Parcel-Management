@@ -1,83 +1,50 @@
+/* storage.c — CSV read/write for parcels */
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 #include "storage.h"
+#define PARCELS_FILE "parcels.csv"
 
-#define FILE_NAME "parcels.csv"
-
-// Check if file exists
-int file_exists(const char *filename) {
-    FILE *f = fopen(filename, "r");
-    if (f == NULL) return 0;
-    fclose(f);
-    return 1;
+void get_current_datetime(char *date, char *ts) {
+    time_t t = time(NULL); struct tm *tm = localtime(&t);
+    strftime(date, 20, "%Y-%m-%d", tm); strftime(ts, 20, "%H:%M:%S", tm);
 }
 
-// Get current date and time separately
-void get_current_datetime(char *date, char *time_str) {
-    time_t t;
-    struct tm *tm_info;
-    time(&t);
-    tm_info = localtime(&t);
-    strftime(date, 20, "%Y-%m-%d", tm_info);
-    strftime(time_str, 20, "%H:%M:%S", tm_info);
-}
-
-// Write CSV header
-void write_csv_header(FILE *f) {
-    fprintf(f,
-        "tracking_number,sender_name,sender_contact,sender_address,sender_city,"
-        "receiver_name,receiver_contact,receiver_address,receiver_city,"
-        "weight_kg,parcel_type,special_instructions,date,time\n");
-}
-
-// Write one parcel row
-void write_csv_row(FILE *f, const Parcel *p, const char *date, const char *time_str) {
-    char special[200];
-
-    // Trim newline from user input if present
-    strcpy(special, p->special_instructions);
-    size_t len = strlen(special);
-    if (len > 0 && special[len-1] == '\n') special[len-1] = '\0';
-
-    // If empty after trimming, set to "None"
-    if (strlen(special) == 0) {
-        strcpy(special, "None");
+int parse_csv_field(const char *line, int pos, char *out, int sz) {
+    int i = 0; out[0] = '\0';
+    if (line[pos] == '"') {
+        pos++;
+        while (line[pos] && i < sz-1) {
+            if (line[pos] == '"') { if (line[pos+1] == '"') { out[i++] = '"'; pos += 2; } else { pos++; break; } }
+            else out[i++] = line[pos++];
+        }
+    } else {
+        while (line[pos] && line[pos] != ',' && line[pos] != '\n' && line[pos] != '\r' && i < sz-1)
+            out[i++] = line[pos++];
     }
-
-    fprintf(f,
-        "\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%.2f,\"%s\",\"%s\",\"%s\",\"%s\"\n",
-        p->tracking_number,
-        p->sender_name,
-        p->sender_contact,
-        p->sender_address,
-        p->sender_city, 
-        p->receiver_name,
-        p->receiver_contact,
-        p->receiver_address,
-        p->receiver_city,
-        p->weight,
-        p->parcel_type,
-        special,
-        date,
-        time_str
-    );
+    out[i] = '\0';
+    while (i > 0 && isspace((unsigned char)out[i-1])) out[--i] = '\0';
+    int start = 0; while (isspace((unsigned char)out[start])) start++;
+    if (start > 0) memmove(out, out + start, i - start + 1);
+    if (line[pos] == ',') pos++;
+    return pos;
 }
 
-// Save parcel to CSV
 void save_to_csv(Parcel *p) {
-    int exists = file_exists(FILE_NAME);
-    char date[20], time_str[20];
-    get_current_datetime(date, time_str);
-
-    FILE *f = fopen(FILE_NAME, "a");
-    if (!f) {
-        perror("[ERROR] Could not open file");
-        return;
-    }
-
-    if (!exists) write_csv_header(f);
-
-    write_csv_row(f, p, date, time_str);
+    char date[20], ts[20]; get_current_datetime(date, ts);
+    FILE *chk = fopen(PARCELS_FILE, "r"); int hdr = (chk == NULL); if (chk) fclose(chk);
+    FILE *f = fopen(PARCELS_FILE, "a");
+    if (!f) { perror("[ERROR] parcels.csv"); return; }
+    if (hdr) fprintf(f, "tracking_number,sender_name,sender_contact,sender_address,"
+        "sender_city,receiver_name,receiver_contact,receiver_address,"
+        "receiver_city,weight_kg,parcel_type,special_instructions,priority,date,time\n");
+    char sp[200]; strncpy(sp, p->special_instructions, 199);
+    size_t l = strlen(sp); if (l > 0 && sp[l-1] == '\n') sp[l-1] = '\0';
+    if (!strlen(sp)) strcpy(sp, "None");
+    fprintf(f, "\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%.2f,\"%s\",\"%s\",%d,\"%s\",\"%s\"\n",
+        p->tracking_number, p->sender_name, p->sender_contact, p->sender_address, p->sender_city,
+        p->receiver_name, p->receiver_contact, p->receiver_address, p->receiver_city,
+        p->weight, p->parcel_type, sp, p->priority, date, ts);
     fclose(f);
 }

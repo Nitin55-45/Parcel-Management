@@ -7,10 +7,18 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
-    header { background: #1a1a2e; color: white; padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; }
-    header h1 { font-size: 1.1rem; }
-    header a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.88rem; }
-    header a:hover { color: white; }
+    header { background: #1a1a2e; color: white; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 1.3rem; letter-spacing: 1px; }
+    .top-bar { background: white; padding: 18px 32px; border-bottom: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; background: white; color: #1a1a2e;
+      text-decoration: none; border-radius: 8px; font-weight: 700;
+      font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      transition: all 0.2s; border: 1px solid #eee;
+    }
+    .back-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-color: #ddd; }
+
     .main { max-width: 960px; margin: 32px auto; padding: 0 20px; }
     .tabs { display: flex; gap: 0; border-radius: 10px; overflow: hidden; border: 1px solid #ddd; margin-bottom: 28px; }
     .tab-btn { flex: 1; padding: 12px; background: white; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #888; transition: all 0.2s; border-right: 1px solid #ddd; }
@@ -38,12 +46,23 @@
 </head>
 <body>
 <header>
-  <h1>📬 My Parcels — {{ user_name }}</h1>
-  <div style="display:flex;gap:20px;">
-    <a href="/">🏠 Home</a>
-    <a href="/logout">Logout</a>
+  <h1>📦 Parcel Dispatch System</h1>
+  <div style="display:flex; gap:20px; align-items:center;">
+    <span style="font-size:0.9rem; color:rgba(255,255,255,0.8);">👤 {{ user_name }}</span>
+    <span style="background:#2980b9; padding:2px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; text-transform:uppercase;">user</span>
+    <a href="/logout" style="background:rgba(255,255,255,0.1); padding:6px 15px; border-radius:6px; border:1px solid rgba(255,255,255,0.3); color:white; text-decoration:none; font-size:0.85rem;">Logout</a>
   </div>
 </header>
+<div class="top-bar">
+  <div class="main" style="max-width:1100px; padding:0; margin:0 auto; display:grid; grid-template-columns: 1fr auto 1fr; align-items:center; width:100%;">
+    <div style="text-align:left;">
+      <a href="/" class="back-btn">← Back to Home</a>
+    </div>
+    <h2 style="font-size:1.3rem; color:#1a1a2e; margin:0; font-weight:800; white-space:nowrap;">My Deliveries</h2>
+    <div style="text-align:right;"></div>
+  </div>
+</div>
+
 <div class="main">
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab('sent', this)">📤 Sent ({{ sent | length }})</button>

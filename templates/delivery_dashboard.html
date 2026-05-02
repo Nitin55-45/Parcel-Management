@@ -16,104 +16,143 @@
     .logout-btn:hover { background: rgba(255,255,255,0.1); }
 
     .hero { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 32px; }
-    .hero h2 { font-size: 1.6rem; margin-bottom: 6px; }
     .hero p { color: rgba(255,255,255,0.65); font-size: 0.92rem; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; background: white; color: #1a1a2e;
+      text-decoration: none; border-radius: 8px; font-weight: 700;
+      font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      transition: all 0.2s; border: 1px solid #eee;
+    }
+    .back-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-color: #ddd; }
 
-    .top-bar { background: white; padding: 16px 32px; border-bottom: 1px solid #e0e0e0; display: flex; gap: 16px; align-items: center; }
-    .top-bar label { font-weight: 600; font-size: 0.9rem; }
-    .top-bar select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+    .top-bar {
+      background: white; padding: 18px 32px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex; align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+    .top-bar select { padding: 9px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s; }
+    .top-bar select:focus { border-color: #f5a623; }
 
-    .main { max-width: 960px; margin: 0 auto; padding: 28px 20px; }
-    .back-link { display: inline-block; margin-bottom: 18px; color: #555; text-decoration: none; font-size: 0.88rem; }
-    .back-link:hover { text-decoration: underline; }
+    .main { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
 
-    .queue-col { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); overflow: hidden; }
-    .queue-header { padding: 14px 18px; font-weight: 700; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; background: #8e44ad; color: white; }
-    .queue-header .count { background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; }
-    .queue-body { padding: 14px; max-height: 520px; overflow-y: auto; }
+    .queue-col { background: white; border-radius: 12px;
+                 box-shadow: 0 2px 10px rgba(0,0,0,0.07); overflow: hidden;
+                 display: flex; flex-direction: column; margin-bottom: 25px; }
+    .queue-header { padding: 14px 18px; font-weight: 700; font-size: 0.95rem;
+                    display: flex; justify-content: space-between; align-items: center; color: white; background: #2980b9; }
+    .queue-header .count { background: rgba(255,255,255,0.3); padding: 2px 8px;
+                           border-radius: 12px; font-size: 0.8rem; }
+    .queue-body { padding: 0; flex: 1; }
+    .empty-queue { text-align: center; padding: 60px 20px; color: #bbb; font-size: 0.88rem; }
+    .delivered-section { margin-top: 40px; }
+    .queue-footer { padding: 15px 20px; background: #f8f9fa; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .btn-green { background: #27ae60; color: white; border:none; border-radius:8px; padding:8px 18px; font-weight:600; cursor:pointer; }
+    .select-all-label { font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; border: 1px solid transparent; }
 
-    .parcel-card { border: 1px solid #eee; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; font-size: 0.85rem; display: flex; gap: 12px; align-items: flex-start; border-left: 4px solid #8e44ad; transition: background 0.15s; }
-    .parcel-card:hover { background: #fafafa; }
-    .parcel-card input[type="checkbox"] { margin-top: 3px; flex-shrink: 0; transform: scale(1.2); }
-    .parcel-info { flex: 1; }
-    .parcel-trk { font-weight: 700; color: #1a1a2e; margin-bottom: 6px; font-size: 0.92rem; }
-    .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 14px; }
-    @media(max-width:500px) { .card-grid { grid-template-columns: 1fr; } }
-    .card-row { font-size: 0.84rem; color: #555; }
-    .card-row strong { color: #1a1a2e; }
-
-    .queue-footer { padding: 12px 14px; border-top: 1px solid #f0f0f0; display: flex; gap: 10px; align-items: center; }
-    .btn { padding: 8px 18px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.88rem; font-weight: 600; transition: opacity 0.2s; }
-    .btn:hover { opacity: 0.85; }
-    .btn-green { background: #27ae60; color: white; }
-    .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
-    .select-all-label { font-size: 0.82rem; color: #888; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-
-    .empty-queue { text-align: center; padding: 40px 16px; color: #bbb; font-size: 0.9rem; }
-    .no-hub { text-align: center; padding: 60px 20px; color: #aaa; }
-    .no-hub p { font-size: 0.95rem; margin-top: 10px; }
+    .hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 20px 0; }
+    .hub-card { 
+      background: white; border-radius: 12px; padding: 24px; text-align: center; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s; cursor: pointer;
+      border: 1px solid #eee; text-decoration: none; color: inherit; display: block;
+    }
+    .hub-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); border-color: #f5a623; }
+    .hub-card .city-icon { font-size: 2.5rem; margin-bottom: 12px; display: block; }
+    .hub-card .city-name { font-size: 1.2rem; font-weight: 700; color: #1a1a2e; display: block; margin-bottom: 4px; }
+    .hub-card .view-btn { margin-top: 15px; display: inline-block; font-size: 0.8rem; color: #f5a623; font-weight: 600; }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>📦 Parcel Dispatch System</h1>
-  <div class="user-info">
-    <span>👤 {{ driver_id }}</span>
-    <span class="role-badge">delivery</span>
-    <a href="/logout" class="logout-btn">Logout</a>
+  <h1>Parcel Dispatch System</h1>
+  <div style="display:flex; gap:20px; align-items:center;">
+    <span style="font-size:0.9rem; color:rgba(255,255,255,0.8);">👤 {{ session.get('name', 'Driver') }}</span>
+    <span style="background:#f5a623; padding:2px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; text-transform:uppercase;">delivery</span>
+    <a href="/logout" style="background:rgba(255,255,255,0.1); padding:6px 15px; border-radius:6px; border:1px solid rgba(255,255,255,0.3); color:white; text-decoration:none; font-size:0.85rem;">Logout</a>
   </div>
 </header>
 
-<div class="hero">
-  <h2>Delivery Dashboard</h2>
-  <p>{% if selected_hub %}Viewing Hub: <strong>{{ selected_hub }}</strong>{% else %}Select a hub to see your deliveries.{% endif %}</p>
-</div>
-
 <div class="top-bar">
-  <label>Select Hub:</label>
-  <form method="GET" action="/delivery_dashboard">
-    <select name="hub" onchange="this.form.submit()">
-      <option value="">-- Choose a Hub --</option>
-      {% for hub in hubs %}
-      <option value="{{ hub }}" {% if hub == selected_hub %}selected{% endif %}>{{ hub }}</option>
-      {% endfor %}
-    </select>
-  </form>
+  <div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:20px;">
+    
+    <!-- Left: Navigation & Hub Switch -->
+    <div style="display:flex; align-items:center; gap:15px; background:#f4f4f7; padding:6px; border-radius:12px;">
+      <a href="/" class="back-btn">← Back to Home</a>
+      {% if selected_hub %}
+      <div style="height:20px; width:1px; background:#ddd;"></div>
+      <form method="GET" action="/delivery_dashboard" style="display:flex; gap:12px; align-items:center;">
+        <label style="font-weight:800; font-size:0.75rem; color:#666; text-transform:uppercase; letter-spacing:1px; margin-left:5px;">Hub:</label>
+        <select name="hub" onchange="this.form.submit()" style="min-width:150px; background:white; border:none; padding:8px 12px; border-radius:8px; font-weight:600;">
+          <option value="">-- Choose a Hub --</option>
+          {% for hub in hubs %}
+          <option value="{{ hub }}" {% if hub == selected_hub %}selected{% endif %}>{{ hub }}</option>
+          {% endfor %}
+        </select>
+      </form>
+      {% endif %}
+    </div>
+    {% if not selected_hub %}
+    <h2 style="font-size:1.3rem; color:#1a1a2e; margin:0;">Delivery Dashboard</h2>
+    {% endif %}
+  </div>
 </div>
 
 <div class="main">
-  <a href="/" class="back-link">← Back to Home</a>
 
   {% if selected_hub %}
   <form method="POST" action="/mark_delivered" id="deliveryForm">
     <input type="hidden" name="current_hub" value="{{ selected_hub }}"/>
-    <div class="queue-col">
+    <div class="queue-col" style="border-left: 4px solid #2980b9;">
       <div class="queue-header">
-        Parcels — {{ selected_hub }}
+        📦 Parcels to Deliver — {{ selected_hub }}
         <span class="count">{{ deliveries | length }}</span>
       </div>
       <div class="queue-body">
         {% if deliveries %}
-        {% for p in deliveries %}
-        <div class="parcel-card">
-          <input type="checkbox" name="tracking_numbers" value="{{ p.tracking_number }}"/>
-          <div class="parcel-info">
-            <div class="parcel-trk">{{ p.tracking_number }}</div>
-            <div class="card-grid">
-              <div class="card-row">Receiver: <strong>{{ p.receiver_name }}</strong></div>
-              <div class="card-row">Phone: <strong>{{ p.receiver_contact }}</strong></div>
-              <div class="card-row">Address: <strong>{{ p.receiver_address }}</strong></div>
-              <div class="card-row">City: <strong>{{ p.receiver_city }}</strong></div>
-              <div class="card-row">Weight: <strong>{{ p.weight_kg or p.weight }} kg</strong></div>
-              <div class="card-row">Type: <strong>{{ p.parcel_type }}</strong></div>
-              {% if p.special_instructions %}
-              <div class="card-row" style="grid-column:1/-1;">Note: <strong>{{ p.special_instructions }}</strong></div>
-              {% endif %}
-            </div>
-          </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
+            <thead style="background:#f8f9fa;">
+              <tr>
+                <th style="padding:15px; border-bottom:2px solid #eee; width:50px;">Select</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Tracking</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Receiver</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Address/Phone</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Shipping Mode</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in deliveries %}
+              <tr style="border-bottom:1px solid #eee; transition: background 0.1s;">
+                <td style="padding:15px; text-align:center;">
+                  <input type="checkbox" name="tracking_numbers" value="{{ p.tracking_number }}" style="transform: scale(1.3);"/>
+                </td>
+                <td style="padding:15px;">
+                  <div style="font-weight:700; color:#1a1a2e;">{{ p.tracking_number }}</div>
+                  {% if p.get('priority','0')|string == 'Express' or p.get('priority','0')|int == 1 %}
+                  <div style="color:#d9534f; font-weight:bold; font-size:0.7rem; margin-top:2px;">⚡ EXPRESS</div>
+                  {% endif %}
+                </td>
+                <td style="padding:15px; font-weight:600;">{{ p.receiver_name }}</td>
+                <td style="padding:15px;">
+                  <div>{{ p.receiver_address }}</div>
+                  <div style="font-size:0.75rem; color:#666;">📞 {{ p.receiver_contact }}</div>
+                  {% if p.special_instructions %}
+                  <div style="font-size:0.75rem; color:#f39c12; font-style:italic; margin-top:3px;">📝 {{ p.special_instructions }}</div>
+                  {% endif %}
+                </td>
+                <td style="padding:15px;">
+                  <span class="badge" style="background:{% if p.get('priority','0')|string == 'Express' or p.get('priority','0')|int == 1 %}#fff5f5{% else %}#f0f9ff{% endif %}; color:{% if p.get('priority','0')|string == 'Express' or p.get('priority','0')|int == 1 %}#c0392b{% else %}#0369a1{% endif %}; border-color:{% if p.get('priority','0')|string == 'Express' or p.get('priority','0')|int == 1 %}#feb2b2{% else %}#bae6fd{% endif %};">
+                    {{ 'EXPRESS' if (p.get('priority','0')|string == 'Express' or p.get('priority','0')|int == 1) else 'STANDARD' }}
+                  </span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-        {% endfor %}
         {% else %}
         <div class="empty-queue">No parcels to deliver in {{ selected_hub }}.</div>
         {% endif %}
@@ -129,10 +168,79 @@
     </div>
   </form>
 
-  {% else %}
-  <div class="no-hub">
-    <p>Select a hub city above to see parcels for delivery.</p>
+  <div class="delivered-section">
+    <div class="queue-col" style="border-left: 4px solid #27ae60; width:100%;">
+      <div class="queue-header" style="background:#67ab71; border-radius:10px 10px 0 0; padding:15px 20px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span>Delivered Today — {{ selected_hub }}</span>
+          <span style="background:rgba(255,255,255,0.2); padding:4px 12px; border-radius:6px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">{{ today }}</span>
+        </div>
+        <span class="count">{{ log | length }}</span>
+      </div>
+      <div class="queue-body" style="max-height: none; padding:0;">
+        {% if log %}
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
+            <thead style="background:#f8f9fa;">
+              <tr>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Tracking</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Sender</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">From</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Receiver</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">To</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Date/Time</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Shipping Mode</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in log %}
+              <tr style="border-bottom:1px solid #eee; transition: background 0.1s;">
+                <td style="padding:15px;"><strong>{{ r.tracking }}</strong></td>
+                <td style="padding:15px;">
+                  <div style="font-weight:600;">{{ r.sender_name }}</div>
+                  <div style="font-size:0.75rem; color:#666;">{{ r.sender_contact }}</div>
+                </td>
+                <td style="padding:15px;">{{ r.from_city }}</td>
+                <td style="padding:15px;">
+                  <div style="font-weight:600;">{{ r.receiver_name }}</div>
+                  <div style="font-size:0.75rem; color:#666;">{{ r.receiver_contact }}</div>
+                </td>
+                <td style="padding:15px;">{{ r.receiver_city }}</td>
+                <td style="padding:15px;">
+                  <div>{{ r.date }}</div>
+                  <div style="font-size:0.75rem; color:#888;">{{ r.time }}</div>
+                </td>
+                <td style="padding:15px;">
+                    <span style="background:{% if r.priority|string == 'Express' or r.priority|int == 1 %}#fff5f5{% else %}#f0f9ff{% endif %}; color:{% if r.priority|string == 'Express' or r.priority|int == 1 %}#c0392b{% else %}#0369a1{% endif %}; padding:4px 10px; border-radius:20px; font-weight:700; font-size:0.75rem; border:1px solid {% if r.priority|string == 'Express' or r.priority|int == 1 %}#feb2b2{% else %}#bae6fd{% endif %};">
+                        {{ 'EXPRESS' if (r.priority|string == 'Express' or r.priority|int == 1) else 'STANDARD' }}
+                    </span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-queue" style="padding:80px;">No parcels delivered today in {{ selected_hub }}.</div>
+        {% endif %}
+      </div>
+    </div>
   </div>
+  {% else %}
+<div class="no-hub" style="max-width:1000px; margin:0 auto; padding-top:20px;">
+  <div style="margin-bottom:25px;">
+    <h2 style="color:#1a1a2e; font-size:1.5rem;">Select a Hub to Deliver</h2>
+  </div>
+  <div class="hub-grid">
+    {% for hub in hubs %}
+    <a href="/delivery_dashboard?hub={{ hub }}" class="hub-card">
+      <span class="city-icon">🚚</span>
+      <span class="city-name">{{ hub }}</span>
+      <span class="view-btn">View Deliveries &rarr;</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
   {% endif %}
 </div>
 

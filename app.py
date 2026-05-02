@@ -1,538 +1,290 @@
 from flask import Flask, render_template, request, session, redirect, url_for
-import subprocess
-import csv
-import os
+import subprocess, csv, os, functools, datetime
 
 app = Flask(__name__)
 app.secret_key = "parcel_secret_key_007"
 
-# ─── Constants ────────────────────────────────────────────────
-ADMIN_ID       = "admin007"
-ADMIN_PASSWORD = "csk"
-ADMIN_NAME     = "Admin"
-PARCELS_CSV    = "parcels.csv"
-USERS_CSV      = "users.csv"
-STATUS_CSV     = "status_log.csv"
+# Configuration
+ADMIN_ID, ADMIN_PASSWORD, ADMIN_NAME = "admin007", "csk", "Admin"
+DELIVERY_ID, DELIVERY_PASSWORD, DELIVERY_CITY = "del123", "india", "Chennai"
+USERS_CSV = "users.csv"
 
-# Hardcoded delivery partner (replace with delivery.csv later)
-DELIVERY_ID       = "del123"
-DELIVERY_PASSWORD = "india"
-DELIVERY_CITY     = "Chennai"
-
-# ─── C Executable Helper ──────────────────────────────────────
-def run_exe(exe_name, args=None, stdin_input=None):
-    """Run a C executable with optional args or stdin input."""
-    if os.name == "nt":
-        cmd = [f"{exe_name}.exe"] + (args or [])
-    else:
-        cmd = [f"./{exe_name}"] + (args or [])
+def run_exe(cmd, args=None, stdin_input=None):
+    exe = [f"{cmd}.exe"] if os.name == "nt" else [f"./{cmd}"]
+    if args: exe += args
     try:
-        result = subprocess.run(cmd, input=stdin_input, capture_output=True, text=True)
-        return result.stdout
-    except Exception as e:
-        print(f"[C Error] {exe_name}: {e}")
-        return ""
+        res = subprocess.run(exe, input=stdin_input, capture_output=True, text=True)
+        return res.stdout
+    except: return ""
 
-# ─── CSV Helpers ──────────────────────────────────────────────
+def role_required(role=None):
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapped(*args, **kwargs):
+            if "user" not in session or (role and session.get("role") != role):
+                return redirect(url_for("login"))
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
 
-def load_users():
-    users = {}
-    if not os.path.exists(USERS_CSV):
-        return users
-    with open(USERS_CSV, newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            users[row["phone"]] = {"name": row["name"], "password": row["password"]}
-    return users
-
-def save_user(name, phone, password):
-    file_exists = os.path.exists(USERS_CSV)
-    with open(USERS_CSV, "a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["name", "phone", "password"])
-        if not file_exists:
-            writer.writeheader()
-        writer.writerow({"name": name, "phone": phone, "password": password})
-
-def load_parcels():
-    parcels = []
-    if not os.path.exists(PARCELS_CSV):
-        return parcels
-    with open(PARCELS_CSV, newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            first_val = list(row.values())[0] if row else ""
-            if first_val.startswith("<<<<") or first_val.startswith(">>>>") or first_val.startswith("===="):
-                continue
-            parcels.append(row)
-    return parcels
-
-def load_status_log():
-    logs = []
-    if not os.path.exists(STATUS_CSV):
-        return logs
-    with open(STATUS_CSV, newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            logs.append(row)
-    return logs
-
-def get_latest_status(tracking):
-    logs = load_status_log()
-    entries = [l for l in logs if l.get("tracking_number", "").strip() == tracking.strip()]
-    return entries[-1] if entries else None
-
-def get_parcel_by_tracking(tracking):
-    for p in load_parcels():
-        if p.get("tracking_number", "").strip() == tracking.strip():
-            return p
-    return None
-
-def get_user_parcels(phone):
-    parcels = load_parcels()
-    sent, received = [], []
-    for p in parcels:
-        s = p.get("sender_contact", "").strip().strip('"')
-        r = p.get("receiver_contact", "").strip().strip('"')
-        trk = p.get("tracking_number", "").strip().strip('"')
-        latest = get_latest_status(trk)
-        p["latest_status"]   = latest["status"] if latest else "Booked"
-        p["status_datetime"] = (latest["date"] + " " + latest["time"]) if latest else ""
-        if s == phone:
-            sent.append(p)
-        if r == phone:
-            received.append(p)
-    return sent, received
-
-def get_notifications(phone):
-    logs    = load_status_log()
-    parcels = load_parcels()
-    parcel_map = {p.get("tracking_number", "").strip().strip('"'): p for p in parcels}
-    notifications = []
-    for log in reversed(logs):
-        trk = log.get("tracking_number", "").strip()
-        p   = parcel_map.get(trk)
-        if not p:
-            continue
-        s = p.get("sender_contact",   "").strip().strip('"')
-        r = p.get("receiver_contact", "").strip().strip('"')
-        if s == phone:
-            log["role"] = "Sender"
-            notifications.append(dict(log))
-        elif r == phone:
-            log["role"] = "Receiver"
-            notifications.append(dict(log))
-    return notifications[:10]
-
-def login_required(role=None):
-    if "user" not in session:
-        return False
-    if role and session.get("role") != role:
-        return False
-    return True
-
-# ─── Parse search output from C ───────────────────────────────
-def parse_search_output(output):
-    results, current = [], {}
+def get_hubs():
+    output = run_exe("parcel_system", ["hubs"])
     for line in output.splitlines():
-        line = line.strip()
-        if line == "RESULT_START":
-            current = {}
-        elif line == "RESULT_END":
-            if current:
-                results.append(current)
-        elif line.startswith("Tracking No:"):
-            current["tracking"] = line.split(":", 1)[1].strip()
-        elif line.startswith("Sender:"):
-            parts = line.split(":", 1)[1].strip().split(" | ")
-            current["sender_name"]    = parts[0] if len(parts) > 0 else ""
-            current["sender_contact"] = parts[1] if len(parts) > 1 else ""
-            current["sender_address"] = parts[2] if len(parts) > 2 else ""
-            current["sender_city"]    = parts[3] if len(parts) > 3 else ""
-        elif line.startswith("Receiver:"):
-            parts = line.split(":", 1)[1].strip().split(" | ")
-            current["receiver_name"]    = parts[0] if len(parts) > 0 else ""
-            current["receiver_contact"] = parts[1] if len(parts) > 1 else ""
-            current["receiver_address"] = parts[2] if len(parts) > 2 else ""
-            current["receiver_city"]    = parts[3] if len(parts) > 3 else ""
-        elif line.startswith("Weight:"):
-            current["weight"] = line.split(":", 1)[1].strip()
-        elif line.startswith("Type:"):
-            current["parcel_type"] = line.split(":", 1)[1].strip()
-        elif line.startswith("Instructions:"):
-            current["instructions"] = line.split(":", 1)[1].strip()
-        elif line.startswith("Date:"):
-            current["date"] = line.split(":", 1)[1].strip()
-        elif line.startswith("Time:"):
-            current["time"] = line.split(":", 1)[1].strip()
-    return results
+        if line.startswith("CITIES:"):
+            return sorted(c.strip() for c in line[7:].split(",") if c.strip())
+    return []
 
-# ─── Auth Routes ──────────────────────────────────────────────
+def parse_parcel(line):
+    d = [x.strip() for x in line.split("|")]
+    if len(d) < 13: return None
+    res = {"tracking_number": d[0], "sender_name": d[1], "sender_contact": d[2], "sender_address": d[3], "sender_city": d[4],
+           "receiver_name": d[5], "receiver_contact": d[6], "receiver_address": d[7], "receiver_city": d[8],
+           "weight": d[9], "parcel_type": d[10], "special_instructions": d[11], "priority": "0"}
+    if len(d) == 13: res["latest_status"] = d[12]
+    elif len(d) == 14: res.update({"latest_status": d[12], "priority": d[13]})
+    elif len(d) == 15: res.update({"latest_status": d[12], "status_datetime": f"{d[13]} {d[14]}"})
+    elif len(d) == 16: res.update({"latest_status": d[12], "status_datetime": f"{d[13]} {d[14]}", "priority": d[15]})
+    elif len(d) >= 18: 
+        res.update({"date": d[12], "time": d[13], "latest_status": d[14], "status_date": d[15], "status_time": d[16], "priority": d[17]})
+        if len(d) >= 19: res["tag"] = "|".join(d[18:])
+    return res
+
+def parse_blocks(output, start, end):
+    res, inside = [], False
+    for line in output.splitlines():
+        if line.strip() == start: inside = True
+        elif line.strip() == end: inside = False
+        elif inside and line.strip(): res.append(line.strip())
+    return res
 
 @app.route("/")
+@role_required()
 def index():
-    if not login_required():
-        return redirect(url_for("login"))
-    phone = session.get("user")
-    notifications = []
+    notifs = []
     if session.get("role") == "user":
-        notifications = get_notifications(phone)
-    return render_template("index.html",
-                           role=session.get("role"),
-                           user_name=session.get("name"),
-                           notifications=notifications)
+        out = run_exe("parcel_system", ["notifs", session["user"]])
+        for block in parse_blocks(out, "NOTIF_START", "NOTIF_END"):
+            parts = block.split("|")
+            if len(parts) >= 5:
+                notifs.append({
+                    "tracking_number": parts[0], "status": parts[1],
+                    "date": parts[2], "time": parts[3], "role": parts[4],
+                    "location": parts[5] if len(parts) >= 6 else "N/A"
+                })
+    return render_template("index.html", role=session.get("role"), user_name=session.get("name"), notifications=notifs)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == "POST":
-        username  = request.form.get("username", "").strip()
-        password  = request.form.get("password", "").strip()
-        role_type = request.form.get("role_type", "customer")
-
-        if role_type == "admin":
-            if username == ADMIN_ID and password == ADMIN_PASSWORD:
-                session["user"]     = ADMIN_ID
-                session["name"]     = ADMIN_NAME
-                session["role"]     = "admin"
-                session["staff_id"] = ADMIN_ID
-                return redirect(url_for("index"))
-            return render_template("login.html", error="Invalid Admin credentials.")
-
-        elif role_type == "delivery":
-            if username == DELIVERY_ID and password == DELIVERY_PASSWORD:
-                session["user"]        = username
-                session["name"]        = "Driver"
-                session["role"]        = "delivery"
-                session["staff_id"]    = username
-                session["driver_city"] = DELIVERY_CITY
-                return redirect(url_for("index"))
-            return render_template("login.html", error="Invalid Driver credentials.")
-
-        else:  # customer
-            users = load_users()
-            if username in users and users[username]["password"] == password:
-                session["user"] = username
-                session["name"] = users[username]["name"]
-                session["role"] = "user"
-                return redirect(url_for("index"))
-            return render_template("login.html", error="Invalid Customer credentials.")
-
-    return render_template("login.html", error=None)
+    if request.method != "POST": return render_template("login.html")
+    u, p, r = request.form.get("username"), request.form.get("password"), request.form.get("role_type")
+    if r == "admin" and u == ADMIN_ID and p == ADMIN_PASSWORD:
+        session.update(user=u, name=ADMIN_NAME, role="admin", staff_id=u)
+    elif r == "delivery" and u == DELIVERY_ID and p == DELIVERY_PASSWORD:
+        session.update(user=u, name="Driver", role="delivery", staff_id=u, driver_city=DELIVERY_CITY)
+    else:
+        users = {}
+        if os.path.exists(USERS_CSV):
+            with open(USERS_CSV, newline="") as f:
+                for row in csv.DictReader(f): users[row["phone"]] = row
+        if u in users and users[u]["password"] == p:
+            session.update(user=u, name=users[u]["name"], role="user")
+        else: return render_template("login.html", error="Invalid credentials")
+    return redirect(url_for("index"))
 
 @app.route("/user_signup", methods=["POST"])
-def user_signup():
-    name     = request.form.get("name", "").strip()
-    phone    = request.form.get("phone", "").strip()
-    password = request.form.get("password", "").strip()
-    if len(phone) != 10 or not phone.isdigit():
-        return render_template("login.html", error="Phone must be exactly 10 digits.")
-    users = load_users()
-    if phone in users:
-        return render_template("login.html", error="Phone number already registered.")
-    save_user(name, phone, password)
-    return render_template("login.html", error="Registration successful! Please login.")
+def signup():
+    n, ph, pw = request.form.get("name"), request.form.get("phone"), request.form.get("password")
+    if len(ph) != 10: return render_template("login.html", error="Invalid phone")
+    ex = os.path.exists(USERS_CSV)
+    with open(USERS_CSV, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["name", "phone", "password"])
+        if not ex: w.writeheader()
+        w.writerow({"name": n, "phone": ph, "password": pw})
+    return render_template("login.html", error="Signup successful")
 
 @app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
-
-# ─── Parcel Registration (Admin only) ─────────────────────────
+def logout(): session.clear(); return redirect(url_for("login"))
 
 @app.route("/register")
-def register():
-    if not login_required("admin"):
-        return redirect(url_for("login"))
-    return render_template("register.html")
+@role_required("admin")
+def register(): return render_template("register.html")
 
 @app.route("/book", methods=["POST"])
+@role_required("admin")
 def book():
-    if not login_required("admin"):
-        return redirect(url_for("login"))
-
-    sender_name    = request.form["senderName"]
-    sender_phone   = request.form["senderPhone"]
-    sender_address = request.form["senderAddress"]
-    sender_city    = request.form["senderCity"]
-    receiver_name    = request.form["receiverName"]
-    receiver_phone   = request.form["receiverPhone"]
-    receiver_address = request.form["receiverAddress"]
-    receiver_city    = request.form["receiverCity"]
-    weight          = request.form["weight"]
-    parcel_type     = request.form["parcelType"]
-    spl_instruction = request.form.get("specialInstructions", "")
-
-    stdin_data = (f"{sender_name}\n{sender_address}\n{sender_city}\n{sender_phone}\n"
-                  f"{receiver_name}\n{receiver_address}\n{receiver_city}\n{receiver_phone}\n"
-                  f"{weight}\n{parcel_type}\n{spl_instruction}\n")
-
-    output = run_exe("program", stdin_input=stdin_data)
-
-    tracking         = "N/A"
-    booking_datetime = "N/A"
-    for line in output.splitlines():
-        line = line.strip()
-        if "Tracking No" in line:
-            tracking = line.split(":", 1)[1].strip()
-        if "Date" in line:
-            booking_datetime = line.split(":", 1)[1].strip()
-
-    return render_template("confirm.html",
-                           sender_name=sender_name, sender_phone=sender_phone,
-                           sender_address=sender_address, sender_city=sender_city,
-                           receiver_name=receiver_name, receiver_phone=receiver_phone,
-                           receiver_address=receiver_address, receiver_city=receiver_city,
-                           weight=weight, parcel_type=parcel_type,
-                           spl_instruction=spl_instruction,
-                           date=booking_datetime, tracking=tracking)
-
-# ─── Admin Dashboard (Hub Queue) ──────────────────────────────
+    f = request.form
+    # 4 lines for sender, 4 for receiver, 3 for parcel info, 1 for priority = 12 lines
+    stdin = f"{f['senderName']}\n{f['senderAddress']}\n{f['senderCity']}\n{f['senderPhone']}\n{f['receiverName']}\n{f['receiverAddress']}\n{f['receiverCity']}\n{f['receiverPhone']}\n{f['weight']}\n{f['parcelType']}\n{f.get('specialInstructions','') or 'None'}\n{f.get('priority', '0')}\n"
+    out = run_exe("parcel_system", ["book"], stdin)
+    tr, dt = "N/A", "N/A"
+    for l in out.splitlines():
+        if "Tracking No :" in l: tr = l.split("Tracking No :")[1].strip()
+        if "Date :" in l: dt = l.split("Date :")[1].strip()
+    return render_template("confirm.html", 
+                           sender_name=f["senderName"], sender_phone=f["senderPhone"], sender_address=f["senderAddress"], sender_city=f["senderCity"],
+                           receiver_name=f["receiverName"], receiver_phone=f["receiverPhone"], receiver_address=f["receiverAddress"], receiver_city=f["receiverCity"],
+                           weight=f["weight"], parcel_type=f["parcelType"], spl_instruction=f.get("specialInstructions") or "None",
+                           priority=int(f.get("priority", 0)), tracking=tr, date=dt)
 
 @app.route("/admin_dashboard")
+@role_required("admin")
 def admin_dashboard():
-    if not login_required("admin"):
-        return redirect(url_for("login"))
-
-    selected_hub  = request.args.get("hub", "").strip().title()
-    search_query  = request.args.get("search", "").strip()
-    all_parcels   = load_parcels()
-
-    # Get unique hub list from all sender/receiver cities
-    hubs = sorted(set(
-        [p.get("sender_city", "").strip() for p in all_parcels] +
-        [p.get("receiver_city", "").strip() for p in all_parcels]
-    ) - {""})
-
-    booked       = []
-    intransit    = []
-    out_delivery = []
-
-    # Override search result
-    override_result = request.args.get("override_result", "")
-    override_tracking = request.args.get("override_tracking", "")
-
-    if selected_hub:
-        for p in all_parcels:
-            trk    = p.get("tracking_number", "").strip()
-            latest = get_latest_status(trk)
-            status = latest["status"].strip() if latest else "Booked"
-            p["latest_status"] = status
-
-            s_city = p.get("sender_city",   "").strip().lower()
-            r_city = p.get("receiver_city", "").strip().lower()
-            hub_l  = selected_hub.lower()
-
-            # Apply search filter if provided
-            if search_query and search_query.lower() not in trk.lower():
-                continue
-
-            if status == "Booked" and s_city == hub_l:
-                booked.append(p)
-            elif status == "InTransit" and r_city == hub_l:
-                intransit.append(p)
-            elif status in ("Out for Delivery", "Reached") and r_city == hub_l:
-                out_delivery.append(p)
-
-    return render_template("admin_dashboard.html",
-                           hubs=hubs,
-                           selected_hub=selected_hub,
-                           search_query=search_query,
-                           booked=booked,
-                           intransit=intransit,
-                           out_for_delivery=out_delivery,
-                           override_result=override_result,
-                           override_tracking=override_tracking)
+    h, s = request.args.get("hub", "").title(), request.args.get("search", "").lower()
+    b, i, o, log = [], [], [], []
+    if h:
+        q_out = run_exe("parcel_system", ["queues", h])
+        qs = {"booked": [], "intransit": [], "outdelivery": []}
+        for l in q_out.splitlines():
+            for k in qs:
+                if l.startswith(k.upper() + ":"): qs[k] = [t for t in l.split(":")[1].split(",") if t.strip()]
+        all_p = {p["tracking_number"]: p for p in [parse_parcel(l) for l in parse_blocks(run_exe("parcel_system", ["parcellog"]), "PARCEL_START", "PARCEL_END")] if p}
+        for k, lst in [("booked", b), ("intransit", i), ("outdelivery", o)]:
+            for t in qs[k]:
+                if not s or s in t.lower():
+                    if t in all_p: lst.append(all_p[t])
+        
+        out_log = run_exe("parcel_system", ["delivered_today", h])
+        for line in parse_blocks(out_log, "DELIV_START", "DELIV_END"):
+            parts = line.split("|")
+            if len(parts) >= 11:
+                log.append({
+                    "tracking": parts[0], "sender_name": parts[1], "sender_contact": parts[2], "from_city": parts[3],
+                    "receiver_name": parts[4], "receiver_contact": parts[5], "receiver_city": parts[6], 
+                    "date": parts[7], "time": parts[8], "type": parts[9], "priority": parts[10]
+                })
+    today_str = datetime.date.today().strftime("%d %b %Y")
+    return render_template("admin_dashboard.html", hubs=get_hubs(), selected_hub=h, search_query=s, booked=b, intransit=i, out_for_delivery=o, log=log, override_msg=request.args.get("override_result"), override_tracking=request.args.get("override_tracking"), today=today_str)
 
 @app.route("/process_batch", methods=["POST"])
-def process_batch():
-    if not login_required("admin"):
-        return redirect(url_for("login"))
-
-    tracking_numbers = request.form.getlist("tracking_numbers")
-    target_status    = request.form.get("target_status", "").strip()
-    current_hub      = request.form.get("current_hub", "").strip()
-    admin_id         = session.get("staff_id", "ADMIN_SYS")
-
-    for trk in tracking_numbers:
-        try:
-            run_exe("update_main", args=["override", trk, target_status, admin_id, current_hub])
-        except Exception as e:
-            print(f"[process_batch] Error updating {trk}: {e}")
-
-    return redirect(url_for("admin_dashboard", hub=current_hub))
+@role_required("admin")
+def process():
+    h, t, sel = request.form.get("current_hub"), request.form.get("target_status"), request.form.getlist("tracking_numbers")
+    aid = session.get("staff_id", "ADMIN")
+    f_q = {"InTransit": "booked", "Out for Delivery": "intransit", "Delivered": "outdelivery"}.get(t)
+    if f_q == "outdelivery":
+        for tr in sel: run_exe("parcel_system", ["update", "deliver", tr, aid, h])
+    else:
+        for _ in range(len(sel) if sel else 1): run_exe("parcel_system", ["process", h, f_q, aid])
+    return redirect(url_for("admin_dashboard", hub=h))
 
 @app.route("/admin_override", methods=["POST"])
-def admin_override():
-    """Search bar override action inside admin dashboard."""
-    if not login_required("admin"):
-        return redirect(url_for("login"))
-
-    tracking   = request.form.get("tracking_number", "").strip()
-    new_status = request.form.get("status", "").strip()
-    location   = request.form.get("location", "").strip()
-    hub        = request.form.get("current_hub", "").strip()
-    admin_id   = session.get("staff_id", "ADMIN_SYS")
-
-    output = run_exe("update_main", args=["override", tracking, new_status, admin_id, location])
-    success = "STATUS_OK" in output
-    result_msg = "✅ Status updated successfully!" if success else "❌ Update failed. Check tracking number."
-
-    return redirect(url_for("admin_dashboard", hub=hub,
-                            override_result=result_msg,
-                            override_tracking=tracking))
-
-# ─── Search (Admin — all parcels; Customer — own only) ────────
+@role_required("admin")
+def override():
+    tr = request.form.get("tracking_number", "").strip()
+    h, st = request.form.get("current_hub"), request.form.get("status")
+    loc, s_out = h, run_exe("parcel_system", ["search", "tracking", tr])
+    tag = "Admin_Override_Fwd"
+    if s_out.startswith("FOUND"):
+        lines = s_out.splitlines()
+        if len(lines) > 1:
+            d = lines[1].split("|")
+            if len(d) >= 13:
+                loc = d[4] if st == "Booked" else d[8]
+                st_old = d[12]
+                r_map = {"booked": 1, "intransit": 2, "out for delivery": 3, "delivered": 4}
+                s1, s2 = st.lower(), st_old.lower()
+                if r_map.get(s1, 0) < r_map.get(s2, 0):
+                    tag = f"BACK|{st_old}|{h}"
+    out = run_exe("parcel_system", ["update", "override", tr, st, session.get("staff_id", "ADMIN"), loc, tag])
+    msg = f"Moved to {loc} ({st})" if "STATUS_OK" in out else "Override Failed"
+    if "BACK|" in tag:
+        parts = tag.split('|')
+        msg = f"Returned from {parts[1]} ({parts[2]}) to {loc} ({st})"
+    return redirect(url_for("admin_dashboard", hub=h, override_result=msg, override_tracking=tr))
 
 @app.route("/search")
-def search():
-    role = session.get("role", "")
-    if not login_required():
-        return redirect(url_for("login"))
-    return render_template("search.html", role=role)
+@role_required()
+def search_page():
+    if session.get("role") == "user": return redirect(url_for("my_parcels"))
+    return render_template("search.html", role=session.get("role"), hubs=get_hubs())
 
 @app.route("/search_by_tracking", methods=["POST"])
-def search_by_tracking():
-    if not login_required():
-        return redirect(url_for("login"))
+@role_required()
+def search_trk():
+    tr = request.form.get("tracking_number", "").strip()
+    out = run_exe("parcel_system", ["search", "tracking", tr])
+    res = []
+    if out.startswith("FOUND"):
+        lines = out.splitlines()
+        if len(lines) > 1:
+            d = [x.strip() for x in lines[1].split("|")]
+            if len(d) >= 15:
+                res.append({"tracking": d[0], "sender_name": d[1], "sender_contact": d[2], "sender_city": d[4], "receiver_name": d[5], "receiver_contact": d[6], "receiver_city": d[8], "weight": d[9], "parcel_type": d[10], "instructions": d[11], "latest_status": d[12], "date": d[13], "time": d[14]})
+    return render_template("search_results.html", search_type="Tracking", search_query=tr, results=res)
 
-    tracking_number = request.form.get("tracking_number", "").strip()
-    output = run_exe("search_main", stdin_input=tracking_number + "\n")
-
-    results_list = []
-    lines = output.strip().split("\n")
-    if len(lines) >= 2 and lines[0] == "FOUND":
-        data = lines[1].split("|")
-        if len(data) >= 12:
-            results_list.append({
-                "tracking":         data[0],
-                "sender_name":      data[1],
-                "sender_contact":   data[2],
-                "sender_address":   data[3],
-                "sender_city":      data[4],
-                "receiver_name":    data[5],
-                "receiver_contact": data[6],
-                "receiver_address": data[7],
-                "receiver_city":    data[8],
-                "weight":           data[9],
-                "parcel_type":      data[10],
-                "instructions":     data[11],
-                "date":             "N/A",
-                "time":             "N/A",
-            })
-
-    return render_template("search_results.html",
-                           search_type="Tracking Number",
-                           search_query=tracking_number,
-                           results=results_list)
+def parse_search(out):
+    res, cur = [], {}
+    for l in out.splitlines():
+        l = l.strip()
+        if l == "RESULT_START": cur = {}
+        elif l == "RESULT_END": res.append(cur)
+        elif ":" in l:
+            k, v = l.split(":", 1)
+            k = k.lower().replace(" ", "_").replace("tracking_no", "tracking")
+            if k in ["sender", "receiver"]:
+                p = v.strip().split(" | ")
+                for i, sf in enumerate(["name", "contact", "address", "city"]):
+                    if i < len(p): cur[f"{k}_{sf}"] = p[i]
+            elif k == "status":
+                cur["latest_status"] = v.strip()
+            else: cur[k] = v.strip()
+    return res
 
 @app.route("/search_by_hub", methods=["POST"])
-def search_by_hub():
-    if not login_required("admin"):
-        return redirect(url_for("login"))
-
-    hub = request.form.get("hub", "").strip()
-    output = run_exe("search", args=["location", hub])
-    results = parse_search_output(output)
-
-    # Enrich with latest status
-    for r in results:
-        latest = get_latest_status(r.get("tracking", ""))
-        r["latest_status"] = latest["status"] if latest else "Booked"
-
-    return render_template("search_results.html",
-                           search_type="Hub",
-                           search_query=hub,
-                           results=results)
+@role_required("admin")
+def search_hub():
+    h = request.form.get("hub").title()
+    res = parse_search(run_exe("parcel_system", ["search", "location", h]))
+    return render_template("search_results.html", search_type="Hub", search_query=h, results=res, from_hub=[r for r in res if r.get("direction")=="FROM"], to_hub=[r for r in res if r.get("direction")=="TO"])
 
 @app.route("/search_by_date", methods=["POST"])
-def search_by_date():
-    if not login_required():
-        return redirect(url_for("login"))
-
-    from_date = request.form.get("from_date", "").strip()
-    to_date   = request.form.get("to_date", "").strip()
-    output    = run_exe("search", args=["date", from_date, to_date])
-    results   = parse_search_output(output)
-
-    for r in results:
-        latest = get_latest_status(r.get("tracking", ""))
-        r["latest_status"] = latest["status"] if latest else "Booked"
-
-    return render_template("search_results.html",
-                           search_type="Date Range",
-                           search_query=f"{from_date} to {to_date}",
-                           results=results)
-
-# ─── My Parcels (Customer only) ───────────────────────────────
+@role_required()
+def search_dt():
+    f, t = request.form.get("from_date"), request.form.get("to_date")
+    res = parse_search(run_exe("parcel_system", ["search", "date", f, t]))
+    return render_template("search_results.html", search_type="Date Range", search_query=f"{f} to {t}", results=res)
 
 @app.route("/my_parcels")
+@role_required("user")
 def my_parcels():
-    if not login_required("user"):
-        return redirect(url_for("login"))
-    phone = session.get("user")
-    name  = session.get("name")
-    sent, received = get_user_parcels(phone)
-    notifications  = get_notifications(phone)
-    return render_template("my_parcels.html",
-                           user_name=name, phone=phone,
-                           sent=sent, received=received,
-                           notifications=notifications)
-
-# ─── Delivery Dashboard ───────────────────────────────────────
+    out = run_exe("parcel_system", ["myparcels", session["user"]])
+    s = [p for p in [parse_parcel(l) for l in parse_blocks(out, "SENT_START", "SENT_END")] if p]
+    r = [p for p in [parse_parcel(l) for l in parse_blocks(out, "RECV_START", "RECV_END")] if p]
+    n = [{"tracking_number": d[0], "status": d[1], "date": d[2], "time": d[3]} for d in [x.split("|") for x in parse_blocks(run_exe("parcel_system", ["notifs", session["user"]]), "NOTIF_START", "NOTIF_END")]]
+    return render_template("my_parcels.html", user_name=session.get("name"), phone=session["user"], sent=s, received=r, notifications=n)
 
 @app.route("/delivery_dashboard")
-def delivery_dashboard():
-    if session.get("role") != "delivery":
-        return redirect(url_for("login"))
-
-    driver_id = session.get("staff_id", "DRV01")
-    selected_hub = request.args.get("hub", "").strip().title()
-
-    hub_result = subprocess.run(["./get_hubs_main.exe"], capture_output=True, text=True)
-    hubs = [h.strip() for h in hub_result.stdout.strip().splitlines() if h.strip()]
-
-    deliveries = []
-    if selected_hub:
-        parcels_all = load_parcels()
-        for p in parcels_all:
-            if p.get("receiver_city", "").strip().lower() == selected_hub.lower():
-                latest = get_latest_status(p.get("tracking_number", "").strip())
-                status = latest["status"].strip() if latest else "Booked"
-                p["latest_status"] = status
-                # Show ALL parcels that are not yet delivered
-                if status != "Delivered":
-                    deliveries.append(p)
-
-    return render_template("delivery_dashboard.html",
-                           driver_id=driver_id,
-                           selected_hub=selected_hub,
-                           hubs=hubs,
-                           deliveries=deliveries)
+@role_required("delivery")
+def delivery():
+    h = request.args.get("hub", "").title()
+    d, log = [], []
+    if h:
+        out = run_exe("parcel_system", ["delivery", h])
+        d = [p for p in [parse_parcel(l) for l in parse_blocks(out, "PARCEL_START", "PARCEL_END")] if p]
+        
+        out_log = run_exe("parcel_system", ["delivered_today", h, session.get("staff_id", "")] )
+        for line in parse_blocks(out_log, "DELIV_START", "DELIV_END"):
+            parts = line.split("|")
+            if len(parts) >= 11:
+                log.append({
+                    "tracking": parts[0], "sender_name": parts[1], "sender_contact": parts[2], "from_city": parts[3],
+                    "receiver_name": parts[4], "receiver_contact": parts[5], "receiver_city": parts[6], 
+                    "date": parts[7], "time": parts[8], "type": parts[9], "priority": parts[10]
+                })
+    today_str = datetime.date.today().strftime("%d %b %Y")
+    return render_template("delivery_dashboard.html", staff_id=session.get("staff_id"), selected_hub=h, hubs=get_hubs(), deliveries=d, log=log, today=today_str)
 
 @app.route("/mark_delivered", methods=["POST"])
-@app.route("/mark_delivered", methods=["POST"])
-def mark_delivered():
-    tracking_numbers = request.form.getlist("tracking_numbers")
-    current_hub = request.form.get("current_hub")
-    driver_id = session.get("staff_id", "DRV01")
+@role_required("delivery")
+def deliver():
+    h = request.form.get("current_hub")
+    for t in request.form.getlist("tracking_numbers"): run_exe("parcel_system", ["update", "deliver", t, session.get("staff_id"), h])
+    return redirect(url_for("delivery", hub=h))
 
-    for tracking in tracking_numbers:
-        subprocess.run(["./update_main.exe", "deliver", tracking, driver_id, current_hub])
-
-    return redirect(url_for("delivery_dashboard", hub=current_hub))
 @app.route("/parcel_log")
+@role_required("admin")
 def parcel_log():
-    if session.get("role") != "admin":
-        return redirect(url_for("login"))
+    p = [p for p in [parse_parcel(l) for l in parse_blocks(run_exe("parcel_system", ["parcellog"]), "PARCEL_START", "PARCEL_END")] if p]
+    return render_template("parcel_log.html", parcels=p)
 
-    parcels = load_parcels()
-    for p in parcels:
-        tracking = p.get("tracking_number", "").strip()
-        latest = get_latest_status(tracking)
-        p["latest_status"] = latest["status"] if latest else "Booked"
-        p["status_date"] = latest["date"] if latest else "-"
-        p["status_time"] = latest["time"] if latest else "-"
-
-    return render_template("parcel_log.html", parcels=parcels)
-
-
-# ─── Run ──────────────────────────────────────────────────────
-
-if __name__ == "__main__":
-    app.run(debug=True)
+if __name__ == "__main__": app.run(debug=True)

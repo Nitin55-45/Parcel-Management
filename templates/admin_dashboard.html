@@ -14,22 +14,32 @@
     header a  { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.88rem; }
     header a:hover { color: white; }
 
-    .override-bar {
-      background: white; border-bottom: 1px solid #e0e0e0;
-      padding: 12px 28px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; background: white; color: #1a1a2e;
+      text-decoration: none; border-radius: 8px; font-weight: 700;
+      font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      transition: all 0.2s; border: 1px solid #eee;
     }
-    .override-bar label { font-weight: 600; font-size: 0.88rem; }
-    .override-bar input, .override-bar select {
-      padding: 7px 10px; border: 1px solid #ddd; border-radius: 7px;
-      font-size: 0.88rem; min-width: 150px;
-    }
+    .back-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-color: #ddd; }
 
     .top-bar {
-      background: white; padding: 16px 28px;
+      background: white; padding: 18px 32px;
       border-bottom: 1px solid #e0e0e0;
-      display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+      display: flex; align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
     }
-    .top-bar select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+    .top-bar select, .top-bar input { padding: 9px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s; }
+    .top-bar select:focus, .top-bar input:focus { border-color: #1a1a2e; }
+    
+    .status-msg {
+      position: fixed; top: 80px; right: 32px; z-index: 1000;
+      background: #1a1a2e; color: white; padding: 12px 24px;
+      border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      font-weight: 600; font-size: 0.9rem; animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
 
     .btn { padding: 8px 18px; border: none; border-radius: 8px; cursor: pointer;
            font-size: 0.88rem; font-weight: 600; transition: all 0.2s; }
@@ -88,65 +98,114 @@
       margin-bottom: 9px; display: flex; gap: 10px; align-items: flex-start;
       transition: background 0.15s; position: relative;
     }
-    .parcel-card:first-child { border-left: 4px solid #27ae60; }
+    .parcel-card:first-child { border-left: 1px solid #eee; }
+    .col-booked .parcel-card:first-child,
+    .col-transit .parcel-card:first-child { border-left: 4px solid #27ae60; }
     .parcel-card.selected    { background: #f0f8ff; border-color: #aad4f5; }
+    .returned-card { border-left: 5px solid #d9534f !important; background: #fffdfd; }
+    .returned-stamp {
+      position: absolute; top: 10px; right: 10px;
+      color: #d9534f; font-weight: 800; font-size: 0.65rem;
+      border: 1.5px solid #d9534f; padding: 1px 5px;
+      border-radius: 4px; transform: rotate(5deg);
+      opacity: 0.8; pointer-events: none;
+    }
     .parcel-card input[type="checkbox"] { margin-top: 2px; flex-shrink: 0; transform: scale(1.2); }
-    .parcel-info { flex: 1; }
-    .parcel-trk  { font-weight: 700; color: #1a1a2e; margin-bottom: 5px; font-size: 0.9rem; }
+    /* Hide checkboxes & disable click for Strict FIFO queues */
+    .col-booked .parcel-card input[type="checkbox"], 
+    .col-transit .parcel-card input[type="checkbox"] { display: none; }
+    .col-booked .parcel-card, .col-transit .parcel-card { pointer-events: none; }
+    .parcel-info { flex: 1; pointer-events: auto; } /* Allow selecting text inside card */
+    .parcel-trk  { 
+      font-weight: 700; color: #1a1a2e; margin-bottom: 5px; font-size: 0.9rem;
+      word-break: break-all;
+    }
     .card-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; }
     .card-row    { font-size: 0.82rem; color: #555; }
     .card-row strong { color: #1a1a2e; }
     .first-badge {
-      position: absolute; top: 8px; right: 8px;
       background: #27ae60; color: white; font-size: 0.68rem;
       padding: 2px 7px; border-radius: 10px; font-weight: 700;
+      margin-bottom: 5px; display: inline-block;
     }
     .empty-queue { text-align: center; padding: 36px 16px; color: #bbb; font-size: 0.88rem; }
     .no-hub      { text-align: center; padding: 60px 20px; color: #aaa; }
     .no-hub .icon { font-size: 3rem; margin-bottom: 12px; }
+
+    .hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 20px 0; }
+    .hub-card { 
+      background: white; border-radius: 12px; padding: 24px; text-align: center; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s; cursor: pointer;
+      border: 1px solid #eee; text-decoration: none; color: inherit; display: block;
+    }
+    .hub-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); border-color: #2980b9; }
+    .hub-card .city-icon { font-size: 2.5rem; margin-bottom: 12px; display: block; }
+    .hub-card .city-name { font-size: 1.2rem; font-weight: 700; color: #1a1a2e; display: block; margin-bottom: 4px; }
+    .hub-card .view-btn { margin-top: 15px; display: inline-block; font-size: 0.8rem; color: #2980b9; font-weight: 600; }
+
+    .delivered-section { margin-top: 40px; grid-column: span 3; }
+    @media(max-width:900px) { .delivered-section { grid-column: span 1; } }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>&#127970; Admin Dashboard</h1>
-  <div style="display:flex;gap:20px;">
-    <a href="/">&#127968; Home</a>
-    <a href="/logout">Logout</a>
+  <h1>Parcel Dispatch System</h1>
+  <div style="display:flex; gap:20px; align-items:center;">
+    <span style="font-size:0.9rem; color:rgba(255,255,255,0.8);">👤 {{ session.get('name', 'Admin') }}</span>
+    <span style="background:#e94560; padding:2px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; text-transform:uppercase;">admin</span>
+    <a href="/logout" style="background:rgba(255,255,255,0.1); padding:6px 15px; border-radius:6px; border:1px solid rgba(255,255,255,0.3);">Logout</a>
   </div>
 </header>
 
-{% if selected_hub %}
-<form method="POST" action="/admin_override" class="override-bar">
-  <input type="hidden" name="current_hub" value="{{ selected_hub }}"/>
-  <label>&#128295; Override:</label>
-  <input type="text" name="tracking_number" placeholder="Tracking number" value="{{ override_trk }}" required/>
-  <select name="status">
-    <option value="Booked">Booked</option>
-    <option value="InTransit">InTransit</option>
-    <option value="Out for Delivery">Out for Delivery</option>
-    <option value="Delivered">Delivered</option>
-  </select>
-  <button type="submit" class="btn btn-dark btn-sm">Apply Override</button>
-  {% if override_msg %}
-  <span style="font-size:0.85rem;font-weight:600;color:{{ '#155724' if '&#10003;' in override_msg else '#721c24' }}">
-    {{ override_msg }}
-  </span>
-  {% endif %}
-</form>
+<div class="top-bar">
+  <div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:20px;">
+    
+    <!-- Left: Navigation & Hub Switch -->
+    <div style="display:flex; align-items:center; gap:15px; background:#f4f4f7; padding:6px; border-radius:12px;">
+      <a href="/" class="back-btn">← Back to Home</a>
+      {% if selected_hub %}
+      <div style="height:20px; width:1px; background:#ddd;"></div>
+      <form method="GET" action="/admin_dashboard" style="display:flex; gap:12px; align-items:center;">
+        <label style="font-weight:800; font-size:0.75rem; color:#666; text-transform:uppercase; letter-spacing:1px; margin-left:5px;">Hub:</label>
+        <select name="hub" onchange="this.form.submit()" style="min-width:150px; background:white; border:none; padding:8px 12px; border-radius:8px; font-weight:600;">
+          <option value="">-- Select Hub --</option>
+          {% for hub in hubs %}
+          <option value="{{ hub }}" {% if selected_hub == hub %}selected{% endif %}>{{ hub }}</option>
+          {% endfor %}
+        </select>
+      </form>
+      {% endif %}
+    </div>
+
+    <!-- Right: Process (Override) Controls -->
+    {% if selected_hub %}
+    <form method="POST" action="/admin_override" style="display:flex; align-items:center; gap:12px; background:#f4f4f7; padding:6px; border-radius:12px;">
+      <input type="hidden" name="current_hub" value="{{ selected_hub }}"/>
+      <input type="text" name="tracking_number" placeholder="Enter Tracking No." value="{{ override_tracking or '' }}" style="width:160px; border:none;" required/>
+      <select name="status" required style="border:none; background:transparent; font-weight:600;">
+        <option value="Booked">Booked</option>
+        <option value="InTransit">InTransit</option>
+        <option value="Out for Delivery">Out for Delivery</option>
+        <option value="Delivered">Delivered</option>
+      </select>
+      <button type="submit" class="btn btn-dark btn-sm" style="background:#1a1a2e; color:white; padding:10px 24px; border-radius:8px; font-weight:700; font-size:0.85rem; text-transform:uppercase;">Process</button>
+    </form>
+    {% else %}
+    <h2 style="font-size:1.3rem; color:#1a1a2e; margin:0; font-weight:800;">Admin Dashboard</h2>
+    {% endif %}
+
+  </div>
+</div>
+
+{% if override_msg %}
+<div class="status-msg" id="statusMsg">
+  {{ override_msg }}
+  <script>setTimeout(()=> { document.getElementById('statusMsg').style.opacity='0'; setTimeout(()=>document.getElementById('statusMsg').remove(), 500); }, 4000);</script>
+</div>
 {% endif %}
 
-<div class="top-bar">
-  <form method="GET" action="/admin_dashboard" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-    <label style="font-weight:600;font-size:0.9rem;">Hub:</label>
-    <select name="hub" onchange="this.form.submit()">
-    <option value="">-- Select Hub --</option>
-    {% for hub in hubs %}
-    <option value="{{ hub }}" {% if selected_hub == hub %}selected{% endif %}>{{ hub }}</option>
-    {% endfor %}
-</select>
-  </form>
-</div>
+
 
 <div class="main">
 {% if selected_hub %}
@@ -157,7 +216,7 @@
     <input type="hidden" name="current_hub" value="{{ selected_hub }}"/>
     <input type="hidden" name="target_status" value="InTransit"/>
     <div class="queue-header">
-      &#128230; Booked
+      Booked
       <span class="count">{{ booked | length }}</span>
     </div>
     <div class="process-row">
@@ -169,17 +228,30 @@
     <div class="queue-body">
       {% if booked %}
         {% for p in booked %}
-        <div class="parcel-card">
-          {% if loop.first %}<span class="first-badge">NEXT</span>{% endif %}
+        <div class="parcel-card {% if 'BACK|' in p.get('tag','') %}returned-card{% endif %}">
+          {% if 'BACK|' in p.get('tag','') %}<div class="returned-stamp">RETURNED</div>{% endif %}
           <input type="checkbox" name="tracking_numbers" value="{{ p.tracking_number }}"
                  onchange="onCheckChange('form-booked','btn-booked',this.closest('.parcel-card'))"/>
           <div class="parcel-info">
-            <div class="parcel-trk">{{ p.tracking_number }}</div>
+            {% if loop.first %}<div class="first-badge">NEXT TO PROCESS</div>{% endif %}
+            <div class="parcel-trk">
+                {{ p.tracking_number }}
+                {% if p.get('priority','0')|string == 'Express' or p.get('priority','0')|int == 1 %}
+                <span style="color:#d9534f; font-weight:bold; font-size:0.75rem; margin-left:8px;">[EXPRESS]</span>
+                {% endif %}
+            </div>
+            {% set tag = p.get('tag', '') %}
+            {% if 'BACK|' in tag %}
+            {% set parts = tag.split('|') %}
+            <div style="background:#fff5f5; color:#c0392b; border:1px solid #feb2b2; border-radius:4px; padding:4px 8px; font-weight:700; font-size:0.75rem; margin: 4px 0 8px 0; display:inline-block; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                &#8630; RETURNED FROM {{ parts[1]|upper }} ({{ parts[2]|upper }})
+            </div>
+            {% endif %}
             <div class="card-grid">
-              <div class="card-row">&#128100; <strong>{{ p.sender_name }}</strong></div>
-              <div class="card-row">&#127759; <strong>{{ p.sender_city }}</strong></div>
-              <div class="card-row">&#8594; <strong>{{ p.receiver_city }}</strong></div>
-              <div class="card-row">&#9878; <strong>{{ p.weight_kg or p.weight }} kg</strong></div>
+              <div class="card-row">Sender: <strong>{{ p.sender_name }}</strong></div>
+              <div class="card-row">From: <strong>{{ p.sender_city }}</strong></div>
+              <div class="card-row">To: <strong>{{ p.receiver_city }}</strong></div>
+              <div class="card-row">Weight: <strong>{{ p.weight_kg or p.weight }} kg</strong></div>
             </div>
           </div>
         </div>
@@ -195,7 +267,7 @@
     <input type="hidden" name="current_hub" value="{{ selected_hub }}"/>
     <input type="hidden" name="target_status" value="Out for Delivery"/>
     <div class="queue-header">
-      &#128666; In Transit
+      In Transit
       <span class="count">{{ intransit | length }}</span>
     </div>
     <div class="process-row">
@@ -207,17 +279,30 @@
     <div class="queue-body">
       {% if intransit %}
         {% for p in intransit %}
-        <div class="parcel-card">
-          {% if loop.first %}<span class="first-badge">NEXT</span>{% endif %}
+        <div class="parcel-card {% if 'BACK|' in p.get('tag','') %}returned-card{% endif %}">
+          {% if 'BACK|' in p.get('tag','') %}<div class="returned-stamp">RETURNED</div>{% endif %}
           <input type="checkbox" name="tracking_numbers" value="{{ p.tracking_number }}"
                  onchange="onCheckChange('form-transit','btn-transit',this.closest('.parcel-card'))"/>
           <div class="parcel-info">
-            <div class="parcel-trk">{{ p.tracking_number }}</div>
+            {% if loop.first %}<div class="first-badge">NEXT TO PROCESS</div>{% endif %}
+            <div class="parcel-trk">
+                {{ p.tracking_number }}
+                {% if p.get('priority','0')|string == 'Express' or p.get('priority','0')|int == 1 %}
+                <span style="color:#d9534f; font-weight:bold; font-size:0.75rem; margin-left:8px;">[EXPRESS]</span>
+                {% endif %}
+            </div>
+            {% set tag = p.get('tag', '') %}
+            {% if 'BACK|' in tag %}
+            {% set parts = tag.split('|') %}
+            <div style="background:#fff5f5; color:#c0392b; border:1px solid #feb2b2; border-radius:4px; padding:4px 8px; font-weight:700; font-size:0.75rem; margin: 4px 0 8px 0; display:inline-block; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                &#8630; RETURNED FROM {{ parts[1]|upper }} ({{ parts[2]|upper }})
+            </div>
+            {% endif %}
             <div class="card-grid">
-              <div class="card-row">&#128100; <strong>{{ p.sender_name }}</strong></div>
-              <div class="card-row">&#127759; <strong>{{ p.sender_city }}</strong></div>
-              <div class="card-row">&#8594; <strong>{{ p.receiver_city }}</strong></div>
-              <div class="card-row">&#9878; <strong>{{ p.weight_kg or p.weight }} kg</strong></div>
+              <div class="card-row">Sender: <strong>{{ p.sender_name }}</strong></div>
+              <div class="card-row">From: <strong>{{ p.sender_city }}</strong></div>
+              <div class="card-row">To: <strong>{{ p.receiver_city }}</strong></div>
+              <div class="card-row">Weight: <strong>{{ p.weight_kg or p.weight }} kg</strong></div>
             </div>
           </div>
         </div>
@@ -233,29 +318,43 @@
     <input type="hidden" name="current_hub" value="{{ selected_hub }}"/>
     <input type="hidden" name="target_status" value="Delivered"/>
     <div class="queue-header">
-      &#128667; Out for Delivery
+      Out for Delivery
       <span class="count">{{ out_for_delivery | length }}</span>
     </div>
-    <div class="process-row">
-      <button type="submit" id="btn-outdeliv" class="process-btn mode-next" {% if not out_for_delivery %}disabled{% endif %}>
-        &#9654; Process Next
-      </button>
-      <button type="button" class="select-all-btn" onclick="toggleSelectAll('form-outdeliv')">&#9745; All</button>
-    </div>
+        <div class="process-row">
+          <button type="submit" class="process-btn mode-next" id="btn-outdeliv" disabled>
+            Select to Deliver
+          </button>
+          <button type="button" class="select-all-btn" onclick="toggleSelectAll('form-outdeliv')">
+            &#9745; All
+          </button>
+        </div>
     <div class="queue-body">
       {% if out_for_delivery %}
         {% for p in out_for_delivery %}
-        <div class="parcel-card">
-          {% if loop.first %}<span class="first-badge">NEXT</span>{% endif %}
+        <div class="parcel-card {% if 'BACK|' in p.get('tag','') %}returned-card{% endif %}">
+          {% if 'BACK|' in p.get('tag','') %}<div class="returned-stamp">RETURNED</div>{% endif %}
           <input type="checkbox" name="tracking_numbers" value="{{ p.tracking_number }}"
                  onchange="onCheckChange('form-outdeliv','btn-outdeliv',this.closest('.parcel-card'))"/>
           <div class="parcel-info">
-            <div class="parcel-trk">{{ p.tracking_number }}</div>
+            <div class="parcel-trk">
+                {{ p.tracking_number }}
+                {% if p.get('priority','0')|string == 'Express' or p.get('priority','0')|int == 1 %}
+                <span style="color:#d9534f; font-weight:bold; font-size:0.75rem; margin-left:8px;">[EXPRESS]</span>
+                {% endif %}
+            </div>
+            {% set tag = p.get('tag', '') %}
+            {% if 'BACK|' in tag %}
+            {% set parts = tag.split('|') %}
+            <div style="background:#fff5f5; color:#c0392b; border:1px solid #feb2b2; border-radius:4px; padding:4px 8px; font-weight:700; font-size:0.75rem; margin: 4px 0 8px 0; display:inline-block; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                &#8630; RETURNED FROM {{ parts[1]|upper }} ({{ parts[2]|upper }})
+            </div>
+            {% endif %}
             <div class="card-grid">
-              <div class="card-row">&#128100; <strong>{{ p.receiver_name }}</strong></div>
-              <div class="card-row">&#127759; <strong>{{ p.receiver_city }}</strong></div>
+              <div class="card-row">Receiver: <strong>{{ p.receiver_name }}</strong></div>
+              <div class="card-row">To: <strong>{{ p.receiver_city }}</strong></div>
               <div class="card-row">&#128222; <strong>{{ p.receiver_contact }}</strong></div>
-              <div class="card-row">&#9878; <strong>{{ p.weight_kg or p.weight }} kg</strong></div>
+              <div class="card-row">Weight: <strong>{{ p.weight_kg or p.weight }} kg</strong></div>
             </div>
           </div>
         </div>
@@ -266,32 +365,108 @@
     </div>
   </form>
 
+  <div class="delivered-section">
+    <div class="queue-col" style="border-left: 4px solid #27ae60; width:100%;">
+      <div class="queue-header" style="background:#67ab71; border-radius:10px 10px 0 0; padding:15px 20px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span>Delivered Today — {{ selected_hub }}</span>
+      <span style="background:rgba(255,255,255,0.2); padding:4px 12px; border-radius:6px; font-size:0.8rem; font-weight:700; letter-spacing:0.5px;">{{ today }}</span>
+    </div>
+    <span class="count">{{ log | length }}</span>
+  </div>
+      <div class="queue-body" style="max-height: none; padding:0;">
+        {% if log %}
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
+            <thead style="background:#f8f9fa;">
+              <tr>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Tracking</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Sender</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">From</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Receiver</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">To</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Date/Time</th>
+                <th style="padding:15px; border-bottom:2px solid #eee;">Shipping Mode</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in log %}
+              <tr style="border-bottom:1px solid #eee; transition: background 0.1s;">
+                <td style="padding:15px;"><strong>{{ r.tracking }}</strong></td>
+                <td style="padding:15px;">
+                  <div style="font-weight:600;">{{ r.sender_name }}</div>
+                  <div style="font-size:0.75rem; color:#666;">{{ r.sender_contact }}</div>
+                </td>
+                <td style="padding:15px;">{{ r.from_city }}</td>
+                <td style="padding:15px;">
+                  <div style="font-weight:600;">{{ r.receiver_name }}</div>
+                  <div style="font-size:0.75rem; color:#666;">{{ r.receiver_contact }}</div>
+                </td>
+                <td style="padding:15px;">{{ r.receiver_city }}</td>
+                <td style="padding:15px;">
+                  <div>{{ r.date }}</div>
+                  <div style="font-size:0.75rem; color:#888;">{{ r.time }}</div>
+                </td>
+                <td style="padding:15px;">
+                    <span style="background:{% if r.priority|string == 'Express' or r.priority|int == 1 %}#fff5f5{% else %}#f0f9ff{% endif %}; color:{% if r.priority|string == 'Express' or r.priority|int == 1 %}#c0392b{% else %}#0369a1{% endif %}; padding:4px 10px; border-radius:20px; font-weight:700; font-size:0.75rem; border:1px solid {% if r.priority|string == 'Express' or r.priority|int == 1 %}#feb2b2{% else %}#bae6fd{% endif %};">
+                        {{ 'EXPRESS' if (r.priority|string == 'Express' or r.priority|int == 1) else 'STANDARD' }}
+                    </span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-queue" style="padding:80px;">No parcels delivered today in {{ selected_hub }}.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
 </div>
 {% else %}
-<div class="no-hub">
-  <div class="icon">&#127759;</div>
-  <p>Select a hub city above to load the queue.</p>
+<div class="no-hub" style="max-width:1000px; margin:0 auto; padding-top:20px;">
+  <div style="margin-bottom:25px;">
+    <h2 style="color:#1a1a2e; font-size:1.5rem;">Select a Hub to Manage</h2>
+  </div>
+  <div class="hub-grid">
+    {% for hub in hubs %}
+    <a href="/admin_dashboard?hub={{ hub }}" class="hub-card">
+      <span class="city-icon">📍</span>
+      <span class="city-name">{{ hub }}</span>
+      <span class="view-btn">Manage Queue &rarr;</span>
+    </a>
+    {% endfor %}
+  </div>
 </div>
 {% endif %}
 </div>
 
 <script>
 const LABELS = {
-  "btn-booked":   { next: "&#9654; Process Next", selected: "&#9654; Send to InTransit" },
-  "btn-transit":  { next: "&#9654; Process Next", selected: "&#9654; Send to Out for Delivery" },
-  "btn-outdeliv": { next: "&#9654; Process Next", selected: "&#9654; Send to Delivered" }
+  "btn-booked":   { next: "&#9654; Process Next", selected: "&#9654; Process Selected" },
+  "btn-transit":  { next: "&#9654; Process Next", selected: "&#9654; Process Selected" },
+  "btn-outdeliv": { next: "Select to Deliver", selected: "&#10003; Mark Delivered" }
 };
 
 function updateBtn(formId, btnId) {
   const form = document.getElementById(formId);
   const btn  = document.getElementById(btnId);
+  if (!btn) return;
   const any  = Array.from(form.querySelectorAll("input[name='tracking_numbers']")).some(cb => cb.checked);
   if (any) {
     btn.classList.replace("mode-next", "mode-selected");
     btn.innerHTML = LABELS[btnId].selected;
+    btn.disabled = false;
   } else {
     btn.classList.replace("mode-selected", "mode-next");
     btn.innerHTML = LABELS[btnId].next;
+    if (btnId === "btn-outdeliv") btn.disabled = true;
+    else {
+        const hasParcels = form.querySelectorAll(".parcel-card").length > 0;
+        btn.disabled = !hasParcels;
+    }
   }
 }
 
@@ -310,6 +485,7 @@ function toggleSelectAll(formId) {
 
 document.querySelectorAll("form[id^='form-']").forEach(form => {
   form.addEventListener("submit", function(e) {
+    if (form.id === "form-outdeliv") return; // Never auto-inject for Out for Delivery
     const cbs = form.querySelectorAll("input[name='tracking_numbers']");
     const any = Array.from(cbs).some(cb => cb.checked);
     form.querySelectorAll(".auto-inject").forEach(el => el.remove());
