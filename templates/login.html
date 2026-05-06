@@ -2,26 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Login — Parcel Service</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Parcel Management System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { background-color: #f4f6f8; font-family: Arial, sans-serif; }
-
-    .login-card {
-      max-width: 460px;
-      margin: 60px auto;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      padding: 36px;
+    body {
+      background: #f4f7fb;
+      color: #243447;
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
     }
 
-    h4 { color: #1a3c5e; font-weight: bold; text-align: center; margin-bottom: 24px; }
+    .login-topbar {
+      background: #ffffff;
+      border-bottom: 1px solid #e5edf5;
+      box-shadow: 0 2px 10px rgba(30, 55, 90, 0.05);
+    }
 
-    /* Toggle buttons */
+    .brand-link {
+      color: #17395c;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #1f4e79;
+      background: #eaf4ff;
+      border: 1px solid #d7e7f5;
+      border-radius: 6px;
+      padding: 8px 14px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .back-home:hover {
+      background: #dceeff;
+      color: #17395c;
+    }
+
+    .login-card {
+      max-width: 480px;
+      margin: 48px auto;
+      background: #ffffff;
+      border: 1px solid #e5edf5;
+      border-radius: 8px;
+      box-shadow: 0 14px 35px rgba(30, 55, 90, 0.1);
+      padding: 34px;
+    }
+
+    .login-title {
+      color: #17395c;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .login-subtitle {
+      color: #6c7a89;
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
     .toggle-wrap {
       display: flex;
-      background: #f0f4f8;
+      background: #edf3f9;
       border-radius: 8px;
       padding: 4px;
       margin-bottom: 24px;
@@ -30,132 +79,164 @@
     .toggle-btn {
       flex: 1;
       text-align: center;
-      padding: 8px;
+      padding: 9px 8px;
+      border: 0;
       border-radius: 6px;
+      background: transparent;
+      color: #5d6d7e;
       cursor: pointer;
       font-size: 14px;
       font-weight: 600;
-      color: #6c757d;
-      transition: all 0.2s;
-      user-select: none;
     }
 
     .toggle-btn.active {
-      background: #1a3c5e;
-      color: #fff;
+      background: #1f4e79;
+      color: #ffffff;
     }
 
-    /* Panels */
-    .panel { display: none; }
-    .panel.active { display: block; }
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
 
     .btn-login {
-      background-color: #1a3c5e;
-      color: white;
       width: 100%;
-      border: none;
-      border-radius: 6px;
+      background: #1f4e79;
+      border: 0;
+      color: #ffffff;
       padding: 10px;
-      font-size: 15px;
-      margin-top: 4px;
-    }
-
-    .btn-login:hover { background-color: #14304d; color: white; }
-
-    .btn-signup {
-      width: 100%;
       border-radius: 6px;
-      padding: 9px;
-      font-size: 14px;
+      font-weight: 600;
     }
 
-    hr { margin: 20px 0; }
-    .section-label { font-size: 13px; color: #6c757d; text-align: center; margin-bottom: 12px; }
+    .btn-login:hover {
+      background: #17395c;
+      color: #ffffff;
+    }
+
+    .section-label {
+      color: #6c7a89;
+      text-align: center;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
-
-<div class="login-card">
-  <h4>&#128230; Parcel Service Login</h4>
-
-  {% if error %}
-  <div class="alert alert-{{ 'danger' if 'successful' not in error else 'success' }} py-2" style="font-size:13px">
-    {{ error }}
-  </div>
-  {% endif %}
-
- <div class="toggle-wrap">
-    <div class="toggle-btn active" id="tab-admin" onclick="switchTab('admin')">&#128274; Admin</div>
-    <div class="toggle-btn" id="tab-delivery" onclick="switchTab('delivery')">&#128666; Delivery</div>
-    <div class="toggle-btn" id="tab-customer" onclick="switchTab('customer')">&#128100; Customer</div>
+  <div class="login-topbar">
+    <div class="container py-3 d-flex justify-content-between align-items-center">
+      <a class="brand-link" href="{{ url_for('landing') }}">Parcel Management System</a>
+      <a class="back-home" href="{{ url_for('landing') }}">
+        <span>&larr;</span>
+        <span>Back to Home</span>
+      </a>
+    </div>
   </div>
 
-  <div class="panel active" id="panel-admin">
-    <form method="POST" action="/login">
-      <input type="hidden" name="role_type" value="admin">
-      <div class="mb-3">
-        <label class="form-label" style="font-size:14px">Staff ID</label>
-        <input type="text" name="username" class="form-control" placeholder="Enter Staff ID" required>
+  <div class="container">
+    <div class="login-card">
+      <h4 class="login-title">Parcel Management System</h4>
+      {% if login_type == "customer" %}
+      <p class="login-subtitle">Customer Login</p>
+      {% else %}
+      <p class="login-subtitle">Company Login - Admin and Delivery Staff</p>
+      {% endif %}
+
+      {% if error %}
+      <div class="alert alert-{{ 'success' if 'successful' in error else 'danger' }} py-2" style="font-size: 13px;">
+        {{ error }}
       </div>
-      <div class="mb-3">
-        <label class="form-label" style="font-size:14px">Password</label>
-        <input type="password" name="password" class="form-control" placeholder="Enter Password" required>
+      {% endif %}
+
+      {% if login_type == "company" %}
+      <div class="toggle-wrap">
+        <button class="toggle-btn {{ 'active' if selected_role == 'admin' else '' }}" type="button" id="tab-admin" onclick="switchTab('admin')">
+          Admin Login
+        </button>
+        <button class="toggle-btn {{ 'active' if selected_role == 'delivery' else '' }}" type="button" id="tab-delivery" onclick="switchTab('delivery')">
+          Delivery Staff Login
+        </button>
       </div>
-      <button type="submit" class="btn-login btn">Login as Admin</button>
-    </form>
+
+      <div class="panel {{ 'active' if selected_role == 'admin' else '' }}" id="panel-admin">
+        <form method="POST" action="{{ url_for('login') }}">
+          <input type="hidden" name="role_type" value="admin">
+          <div class="mb-3">
+            <label class="form-label">Staff ID</label>
+            <input type="text" name="username" class="form-control" placeholder="Enter admin staff ID" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+          </div>
+          <button type="submit" class="btn btn-login">Login as Admin</button>
+        </form>
+      </div>
+
+      <div class="panel {{ 'active' if selected_role == 'delivery' else '' }}" id="panel-delivery">
+        <form method="POST" action="{{ url_for('login') }}">
+          <input type="hidden" name="role_type" value="delivery">
+          <div class="mb-3">
+            <label class="form-label">Driver ID</label>
+            <input type="text" name="username" class="form-control" placeholder="Enter delivery staff ID" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+          </div>
+          <button type="submit" class="btn btn-login">Login as Delivery Staff</button>
+        </form>
+      </div>
+      {% else %}
+      <div class="panel active" id="panel-customer">
+        <form method="POST" action="{{ url_for('login') }}">
+          <input type="hidden" name="role_type" value="customer">
+          <div class="mb-3">
+            <label class="form-label">Phone Number</label>
+            <input type="text" name="username" class="form-control" placeholder="Enter 10-digit phone number" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+          </div>
+          <button type="submit" class="btn btn-login">Login as Customer</button>
+        </form>
+
+        <hr class="my-4">
+        <p class="section-label">New customer? Create an account</p>
+        <form method="POST" action="{{ url_for('signup') }}">
+          <div class="mb-2">
+            <input type="text" name="name" class="form-control" placeholder="Full name" required>
+          </div>
+          <div class="mb-2">
+            <input type="text" name="phone" class="form-control" placeholder="Phone number (10 digits)" required>
+          </div>
+          <div class="mb-3">
+            <input type="password" name="password" class="form-control" placeholder="Set password" required>
+          </div>
+          <button type="submit" class="btn btn-outline-success w-100">Register as Customer</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
   </div>
 
-  <div class="panel" id="panel-delivery">
-    <form method="POST" action="/login">
-      <input type="hidden" name="role_type" value="delivery">
-      <div class="mb-3">
-        <label class="form-label" style="font-size:14px">Driver Phone / ID</label>
-        <input type="text" name="username" class="form-control" placeholder="Enter Driver ID" required>
-      </div>
-      <div class="mb-3">
-        <label class="form-label" style="font-size:14px">Password</label>
-        <input type="password" name="password" class="form-control" placeholder="Enter Password" required>
-      </div>
-      <button type="submit" class="btn-login btn">Login as Delivery Partner</button>
-    </form>
-  </div>
+  <script>
+    function switchTab(tab) {
+      document.querySelectorAll(".panel").forEach(function(panel) {
+        panel.classList.remove("active");
+      });
 
-  <div class="panel" id="panel-customer">
-    <form method="POST" action="/login">
-      <input type="hidden" name="role_type" value="customer">
-      <div class="mb-3">
-        <label class="form-label" style="font-size:14px">Phone Number</label>
-        <input type="text" name="username" class="form-control" placeholder="Enter 10-digit phone number" required>
-      </div>
-      <div class="mb-3">
-        <label class="form-label" style="font-size:14px">Password</label>
-        <input type="password" name="password" class="form-control" placeholder="Enter Password" required>
-      </div>
-      <button type="submit" class="btn-login btn">Login as Customer</button>
-    </form>
+      document.querySelectorAll(".toggle-btn").forEach(function(button) {
+        button.classList.remove("active");
+      });
 
-    <hr>
-    <p class="section-label">New here? Register as a customer</p>
-    <form method="POST" action="/user_signup">
-      <div class="mb-2"><input type="text" name="name" class="form-control" placeholder="Full Name" required style="font-size:14px"></div>
-      <div class="mb-2"><input type="text" name="phone" class="form-control" placeholder="Phone Number (10 digits)" required style="font-size:14px"></div>
-      <div class="mb-3"><input type="password" name="password" class="form-control" placeholder="Set Password" required style="font-size:14px"></div>
-      <button type="submit" class="btn btn-outline-success btn-signup">Register as Customer</button>
-    </form>
-  </div>
-</div>
-
-<script>
-  function switchTab(tab) {
-    // Hide all panels
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-
-    // Show selected panel
-    document.getElementById("panel-" + tab).classList.add("active");
-    document.getElementById("tab-" + tab).classList.add("active");
-  }
-</script>
-
+      document.getElementById("panel-" + tab).classList.add("active");
+      document.getElementById("tab-" + tab).classList.add("active");
+    }
+  </script>
 </body>
 </html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parcel Management System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      color: #243447;
+      background: #f5f8fb;
+    }
+
+    .navbar {
+      background: #ffffff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .navbar-brand {
+      color: #17466e;
+      font-weight: 700;
+    }
+
+    .hero {
+      background: #eaf4ff;
+      padding: 85px 0;
+    }
+
+    .hero h1 {
+      color: #17466e;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      color: #5f6f7f;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      max-width: 620px;
+    }
+
+    .hero-box {
+      background: #ffffff;
+      border: 1px solid #dce8f2;
+      border-radius: 8px;
+      padding: 26px;
+      box-shadow: 0 10px 25px rgba(23, 70, 110, 0.08);
+    }
+
+    .status-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    .status-item:last-child {
+      border-bottom: 0;
+    }
+
+    .status-badge {
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 5px 12px;
+      white-space: nowrap;
+    }
+
+    .badge-booked {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .badge-transit {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .badge-delivery {
+      background: #ede9fe;
+      color: #6d28d9;
+    }
+
+    .badge-delivered {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .section-space {
+      padding: 65px 0;
+    }
+
+    .feature-card {
+      height: 100%;
+      border: 1px solid #e4edf5;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+    }
+
+    .feature-number {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: #eaf4ff;
+      color: #17466e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .about {
+      background: #ffffff;
+    }
+
+    footer {
+      background: #17466e;
+      color: #dce8f2;
+      padding: 25px 0;
+    }
+
+    @media (max-width: 991px) {
+      .hero {
+        padding: 60px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="{{ url_for('landing') }}">Parcel Management System</a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="mainNavbar">
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <li class="nav-item">
+            <a class="nav-link active" href="{{ url_for('landing') }}">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#contact">Contact</a>
+          </li>
+          <li class="nav-item dropdown ms-lg-3">
+            <a class="btn btn-primary dropdown-toggle px-4" href="#" role="button" data-bs-toggle="dropdown">
+              Login
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="{{ url_for('login', type='customer', role='customer') }}">Customer</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('login', type='company', role='admin') }}">Company</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-7">
+          <h1 class="display-5 mb-3">Efficient Parcel Management System</h1>
+          <p class="mb-4">
+            A simple system for parcel tracking, fast delivery processing, and real-time status updates.
+            Customers can track parcels, while company staff can manage booking and delivery work.
+          </p>
+          <div class="d-flex flex-wrap gap-3">
+            <a href="{{ url_for('login', type='customer', role='customer') }}" class="btn btn-primary btn-lg">Track Your Parcel</a>
+            <a href="{{ url_for('login', type='company', role='admin') }}" class="btn btn-outline-primary btn-lg">Get Started</a>
+          </div>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="hero-box">
+            <h5 class="fw-bold mb-3">Parcel Status</h5>
+            <div class="status-item">
+              <div>
+                <strong>Booked</strong>
+                <p class="text-muted small mb-0">Parcel details are registered.</p>
+              </div>
+              <span class="status-badge badge-booked">Booked</span>
+            </div>
+            <div class="status-item">
+              <div>
+                <strong>In Transit</strong>
+                <p class="text-muted small mb-0">Parcel is moving between hubs.</p>
+              </div>
+              <span class="status-badge badge-transit">In Transit</span>
+            </div>
+            <div class="status-item">
+              <div>
+                <strong>Out for Delivery</strong>
+                <p class="text-muted small mb-0">Delivery staff is handling the parcel.</p>
+              </div>
+              <span class="status-badge badge-delivery">Out for Delivery</span>
+            </div>
+            <div class="status-item">
+              <div>
+                <strong>Delivered</strong>
+                <p class="text-muted small mb-0">Parcel is delivered successfully.</p>
+              </div>
+              <span class="status-badge badge-delivered">Delivered</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-space" id="features">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="fw-bold">Key Features</h2>
+        <p class="text-muted mb-0">Clean tools for managing parcels from booking to delivery.</p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+          <div class="card feature-card p-4">
+            <div class="feature-number">1</div>
+            <h5 class="fw-bold">Real-time Tracking</h5>
+            <p class="text-muted mb-0">View parcel status updates using the tracking number.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card feature-card p-4">
+            <div class="feature-number">2</div>
+            <h5 class="fw-bold">Secure Delivery</h5>
+            <p class="text-muted mb-0">Keep parcel and user details organized safely.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card feature-card p-4">
+            <div class="feature-number">3</div>
+            <h5 class="fw-bold">Fast Processing</h5>
+            <p class="text-muted mb-0">Process parcels quickly through each delivery stage.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card feature-card p-4">
+            <div class="feature-number">4</div>
+            <h5 class="fw-bold">Multi-user Access</h5>
+            <p class="text-muted mb-0">Separate access for admin, delivery staff, and customers.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="about section-space">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-9 text-center">
+          <h2 class="fw-bold mb-3">About the System</h2>
+          <p class="text-muted fs-5 mb-0">
+            This Parcel Management System helps manage booking, tracking, delivery updates,
+            customer accounts, and staff access in one simple platform.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="contact">
+    <div class="container">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <strong>Parcel Management System</strong>
+        <span class="small">Fast, clear, and secure parcel operations.</span>
+        <span class="small">&copy; 2026 Parcel Management System</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

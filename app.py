@@ -58,6 +58,10 @@ def parse_blocks(output, start, end):
     return res
 
 @app.route("/")
+def landing():
+    return render_template("landing.html")
+
+@app.route("/dashboard")
 @role_required()
 def index():
     notifs = []
@@ -75,7 +79,19 @@ def index():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method != "POST": return render_template("login.html")
+    selected_role = request.args.get("role") or request.args.get("tab")
+    login_type = request.args.get("type")
+
+    if selected_role == "customer":
+        login_type = "customer"
+    elif selected_role in ("admin", "delivery"):
+        login_type = "company"
+    else:
+        login_type = login_type or "company"
+        selected_role = "admin" if login_type == "company" else "customer"
+
+    if request.method != "POST":
+        return render_template("login.html", login_type=login_type, selected_role=selected_role)
     u, p, r = request.form.get("username"), request.form.get("password"), request.form.get("role_type")
     if r == "admin" and u == ADMIN_ID and p == ADMIN_PASSWORD:
         session.update(user=u, name=ADMIN_NAME, role="admin", staff_id=u)
@@ -88,22 +104,22 @@ def login():
                 for row in csv.DictReader(f): users[row["phone"]] = row
         if u in users and users[u]["password"] == p:
             session.update(user=u, name=users[u]["name"], role="user")
-        else: return render_template("login.html", error="Invalid credentials")
+        else: return render_template("login.html", error="Invalid credentials", login_type="customer" if r == "customer" else "company", selected_role=r)
     return redirect(url_for("index"))
 
 @app.route("/user_signup", methods=["POST"])
 def signup():
     n, ph, pw = request.form.get("name"), request.form.get("phone"), request.form.get("password")
-    if len(ph) != 10: return render_template("login.html", error="Invalid phone")
+    if len(ph) != 10: return render_template("login.html", error="Invalid phone", login_type="customer", selected_role="customer")
     ex = os.path.exists(USERS_CSV)
     with open(USERS_CSV, "a", newline="") as f:
         w = csv.DictWriter(f, fieldnames=["name", "phone", "password"])
         if not ex: w.writeheader()
         w.writerow({"name": n, "phone": ph, "password": pw})
-    return render_template("login.html", error="Signup successful")
+    return render_template("login.html", error="Signup successful", login_type="customer", selected_role="customer")
 
 @app.route("/logout")
-def logout(): session.clear(); return redirect(url_for("login"))
+def logout(): session.clear(); return redirect(url_for("landing"))
 
 @app.route("/register")
 @role_required("admin")
