@@ -163,7 +163,7 @@
     
     <!-- Left: Navigation & Hub Switch -->
     <div style="display:flex; align-items:center; gap:15px; background:#f4f4f7; padding:6px; border-radius:12px;">
-      <a href="/" class="back-btn">← Back to Home</a>
+      <a href="/dashboard" class="back-btn">← Back to Home</a>
       {% if selected_hub %}
       <div style="height:20px; width:1px; background:#ddd;"></div>
       <form method="GET" action="/admin_dashboard" style="display:flex; gap:12px; align-items:center;">
@@ -221,7 +221,7 @@
     </div>
     <div class="process-row">
       <button type="submit" id="btn-booked" class="process-btn mode-next" {% if not booked %}disabled{% endif %}>
-        &#9654; Process Next
+        &#128666; Dispatch Next
       </button>
       <button type="button" class="select-all-btn" onclick="toggleSelectAll('form-booked')">&#9745; All</button>
     </div>
@@ -445,7 +445,7 @@
 
 <script>
 const LABELS = {
-  "btn-booked":   { next: "&#9654; Process Next", selected: "&#9654; Process Selected" },
+  "btn-booked":   { next: "&#128666; Dispatch Next", selected: "&#128666; Dispatch Selected" },
   "btn-transit":  { next: "&#9654; Process Next", selected: "&#9654; Process Selected" },
   "btn-outdeliv": { next: "Select to Deliver", selected: "&#10003; Mark Delivered" }
 };

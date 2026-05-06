@@ -74,3 +74,5 @@ tracking_number,status,staff_id,staff_name,location,date,time
 "TRK-20260502-0014-OZQG","InTransit","admin007","Admin_Process","Chennai","2026-05-02","16:19:27"
 "TRK-20260502-0014-OZQG","Out for Delivery","admin007","Admin_Process","Chennai","2026-05-02","16:19:36"
 "TRK-20260502-0014-OZQG","Delivered","admin007","Driver","Chennai","2026-05-02","16:19:50"
+"TRK-20260506-0001-FUBB","Booked","SYS01","System Auto","Chennai","2026-05-06","23:43:26"
+"TRK-20260506-0001-FUBB","Out for Delivery","admin007","Admin_Process","Chennai","2026-05-06","23:44:16"

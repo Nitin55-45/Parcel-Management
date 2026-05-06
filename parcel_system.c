@@ -111,7 +111,10 @@ static int cmd_process(const char *hub, const char *from_q, const char *aid) {
     if (!strcmp(from_q, "booked")) {
         ParcelNode *root = load_parcels_to_bst("parcels.csv");
         ParcelNode *p = search_bst(root, trk);
-        if (p) strncpy(loc, p->data.receiver_city, 49);
+        if (p) {
+            strncpy(loc, p->data.receiver_city, 49);
+            if (strcasecmp(p->data.sender_city, p->data.receiver_city) == 0) tgt = STATUS_OUT_FOR_DELIVERY;
+        }
         free_bst(root);
     }
     save_status_to_csv(trk, tgt, aid, "Admin_Process", loc);

@@ -59,6 +59,8 @@ def parse_blocks(output, start, end):
 
 @app.route("/")
 def landing():
+    if "user" in session:
+        return redirect(url_for("index"))
     return render_template("landing.html")
 
 @app.route("/dashboard")
@@ -119,7 +121,12 @@ def signup():
     return render_template("login.html", error="Signup successful", login_type="customer", selected_role="customer")
 
 @app.route("/logout")
-def logout(): session.clear(); return redirect(url_for("landing"))
+def logout():
+    role = session.get("role")
+    session.clear()
+    if role in ["admin", "delivery"]:
+        return redirect(url_for("login", type="company"))
+    return redirect(url_for("landing"))
 
 @app.route("/register")
 @role_required("admin")
