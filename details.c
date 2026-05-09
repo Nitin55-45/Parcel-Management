@@ -28,12 +28,6 @@ int is_valid_phone(const char *s) {
   }
   return len == 10;
 }
-void trim_newline(char *s) {
-  size_t l = strlen(s);
-  if (l > 0 && s[l - 1] == '\n')
-    s[l - 1] = '\0';
-}
-
 void input_person(Person *p, const char *role) {
   printf("\n--- %s details ---\n", role);
   do {

@@ -19,7 +19,6 @@ typedef struct {
 void title_case(char *s);          /* ← add this */
 int  is_non_empty(const char *s);
 int  is_valid_phone(const char *s);
-void trim_newline(char *s);
 void input_person(Person *p, const char *role);
 void input_parcel_info(ParcelInfo *pi);
 

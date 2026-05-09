@@ -23,6 +23,5 @@ typedef struct {
 void save_to_csv(Parcel *p);
 void get_current_datetime(char *date, char *time_str);
 int  parse_csv_field(const char *line, int pos, char *out, int out_sz);
-int  file_exists(const char *filename);
 
 #endif
