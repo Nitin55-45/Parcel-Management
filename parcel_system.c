@@ -353,13 +353,14 @@ int main(int argc, char *argv[]) {
             ParcelNode *root = load_enriched_bst("parcels.csv", "status_log.csv");
             ParcelNode *r = search_bst(root, argv[3]);
             if (r) {
-                printf("FOUND\n%s|%s|%s|%s|%s|%s|%s|%s|%s|%.2f|%s|%s|%s|%s|%s\n",
+                printf("FOUND\n%s|%s|%s|%s|%s|%s|%s|%s|%s|%.2f|%s|%s|%s|%s|%s|%s\n",
                     r->data.tracking_number, r->data.sender_name, r->data.sender_contact,
                     r->data.sender_address, r->data.sender_city, r->data.receiver_name,
                     r->data.receiver_contact, r->data.receiver_address, r->data.receiver_city,
                     r->data.weight, r->data.parcel_type, r->data.special_instructions,
                     r->has_status?r->status:"Booked", r->has_status?r->status_date:r->data.date,
-                    r->has_status?r->status_time:r->data.time_str);
+                    r->has_status?r->status_time:r->data.time_str,
+                    r->has_status?r->location:"Origin");
             } else printf("NOT_FOUND\n");
             free_bst(root); return 0;
         }

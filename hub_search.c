@@ -44,11 +44,11 @@ static void free_tree(CNode *n) {
 static void print_result(PNode *p, const char *dir, ParcelNode *pr) {
     ParcelNode *pn = search_bst(pr, p->f[0]);
     const char *st = (pn && pn->has_status) ? pn->status : "Booked";
-    const char *s_date = (pn && pn->has_status) ? pn->status_date : p->f[13];
-    const char *s_time = (pn && pn->has_status) ? pn->status_time : p->f[14];
-    printf("RESULT_START\nDirection: %s\nTracking No: %s\nSender: %s | %s | %s | %s\nReceiver: %s | %s | %s | %s\nWeight: %s\nType: %s\nInstructions: %s\nPriority: %s\nDate: %s\nTime: %s\nStatus: %s\nRESULT_END\n",
+    const char *s_date = (pn && pn->has_status) ? pn->status_date : p->f[12];
+    const char *s_time = (pn && pn->has_status) ? pn->status_time : p->f[13];
+    printf("RESULT_START\nDirection: %s\nTracking No: %s\nSender: %s | %s | %s | %s\nReceiver: %s | %s | %s | %s\nWeight: %s\nParcel Type: %s\nInstructions: %s\nPriority: %s\nDate: %s\nTime: %s\nStatus: %s\nRESULT_END\n",
            dir, p->f[0], p->f[1], p->f[2], p->f[3], p->f[4], p->f[5], p->f[6], p->f[7], p->f[8],
-           p->f[9], p->f[10], p->f[11], atoi(p->f[12]) ? "Express" : "Standard",
+           p->f[9], p->f[10], p->f[11], atoi(p->f[14]) ? "Express" : "Standard",
            s_date, s_time, st);
 }
 

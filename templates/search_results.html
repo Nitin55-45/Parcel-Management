@@ -252,6 +252,7 @@
         </div>
         <div class="info-block">
           <h4>Route</h4>
+          <div class="info-row">Current: <strong>{{ r.current_location or 'In Transit' }}</strong></div>
           <div class="info-row">From: <strong>{{ r.sender_city }}</strong></div>
           <div class="info-row">To: <strong>{{ r.receiver_city }}</strong></div>
         </div>

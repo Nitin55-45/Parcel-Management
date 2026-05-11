@@ -136,7 +136,6 @@ def register(): return render_template("register.html")
 @role_required("admin")
 def book():
     f = request.form
-    # 4 lines for sender, 4 for receiver, 3 for parcel info, 1 for priority = 12 lines
     stdin = f"{f['senderName']}\n{f['senderAddress']}\n{f['senderCity']}\n{f['senderPhone']}\n{f['receiverName']}\n{f['receiverAddress']}\n{f['receiverCity']}\n{f['receiverPhone']}\n{f['weight']}\n{f['parcelType']}\n{f.get('specialInstructions','') or 'None'}\n{f.get('priority', '0')}\n"
     out = run_exe("parcel_system", ["book"], stdin)
     tr, dt = "N/A", "N/A"
@@ -231,8 +230,13 @@ def search_trk():
         lines = out.splitlines()
         if len(lines) > 1:
             d = [x.strip() for x in lines[1].split("|")]
-            if len(d) >= 15:
-                res.append({"tracking": d[0], "sender_name": d[1], "sender_contact": d[2], "sender_city": d[4], "receiver_name": d[5], "receiver_contact": d[6], "receiver_city": d[8], "weight": d[9], "parcel_type": d[10], "instructions": d[11], "latest_status": d[12], "date": d[13], "time": d[14]})
+            if len(d) >= 16:
+                res.append({
+                    "tracking": d[0], "sender_name": d[1], "sender_contact": d[2], "sender_address": d[3], "sender_city": d[4],
+                    "receiver_name": d[5], "receiver_contact": d[6], "receiver_address": d[7], "receiver_city": d[8],
+                    "weight": d[9], "parcel_type": d[10], "instructions": d[11], "latest_status": d[12],
+                    "date": d[13], "time": d[14], "current_location": d[15]
+                })
     return render_template("search_results.html", search_type="Tracking", search_query=tr, results=res)
 
 def parse_search(out):
