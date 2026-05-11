@@ -106,14 +106,14 @@ void search_by_date(const char *fn, const char *from, const char *to) {
         char d[15][256]; int pos = 0;
         for (int i = 0; i < 15; i++) pos = parse_csv_field(line, pos, d[i], 256);
 
-        if (strcmp(d[13], from) >= 0 && strcmp(d[13], to) <= 0) {
+        if (strcmp(d[12], from) >= 0 && strcmp(d[12], to) <= 0) {
             ParcelNode *p = search_bst(pr, d[0]);
             const char *st = (p && p->has_status) ? p->status : "Booked";
-            const char *s_dt = (p && p->has_status) ? p->status_date : d[13];
-            const char *s_tm = (p && p->has_status) ? p->status_time : d[14];
-            printf("RESULT_START\nTracking No: %s\nSender: %s | %s | %s | %s\nReceiver: %s | %s | %s | %s\nWeight: %s\nType: %s\nInstructions: %s\nPriority: %s\nDate: %s\nTime: %s\nStatus: %s\nRESULT_END\n",
+            const char *s_dt = (p && p->has_status) ? p->status_date : d[12];
+            const char *s_tm = (p && p->has_status) ? p->status_time : d[13];
+            printf("RESULT_START\nTracking No: %s\nSender: %s | %s | %s | %s\nReceiver: %s | %s | %s | %s\nWeight: %s\nParcel Type: %s\nInstructions: %s\nPriority: %s\nDate: %s\nTime: %s\nStatus: %s\nRESULT_END\n",
                    d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d[9], d[10], d[11],
-                   atoi(d[12]) ? "Express" : "Standard", s_dt, s_tm, st);
+                   atoi(d[14]) ? "Express" : "Standard", s_dt, s_tm, st);
         }
     }
     free_bst(pr); fclose(f);

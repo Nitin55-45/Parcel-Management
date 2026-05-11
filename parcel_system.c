@@ -210,9 +210,9 @@ static int cmd_delivery(const char *hub) {
             if (p) {
                 const char *pri = p->data.priority ? "Express" : "Standard";
                 printf("PARCEL_START\n%s|%s|%s|%s|%s|%s|%s|%s|%s|%.2f|%s|%s|Out for Delivery|%s\nPARCEL_END\n",
-                    p->data.tracking_number, p->data.receiver_name, p->data.receiver_contact,
-                    p->data.receiver_address, p->data.receiver_city, p->data.sender_name,
-                    p->data.sender_contact, p->data.sender_address, p->data.sender_city,
+                    p->data.tracking_number, p->data.sender_name, p->data.sender_contact,
+                    p->data.sender_address, p->data.sender_city, p->data.receiver_name,
+                    p->data.receiver_contact, p->data.receiver_address, p->data.receiver_city,
                     p->data.weight, p->data.parcel_type, p->data.special_instructions, pri);
             }
         }
