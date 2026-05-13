@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.exe
+*.o
+docx_content.txt
+format_report.py
+format_word.py
+Formatted_Project_Report.md
+Formatted_Project_Report.html
+*.csv
+counter.txt
